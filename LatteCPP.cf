@@ -2,15 +2,28 @@
 
 entrypoints Program ;
 
-Prog.   Program ::= [TopDef] ;
+Prog.   	Program ::= [TopDef] ;
 
-FnDef.	   TopDef ::= Type Ident "(" [Arg] ")" Block ;
+FnDef.	   	TopDef ::= Type Ident "(" [Arg] ")" Block ;
+
+ClsDef. 	TopDef ::= "class" Ident "{" [ClsElems] "}" ;
+
+ExtClsDef.	TopDef ::= "class" Ident "extends" Ident "{" [ClsElems] "}" ;
 
 separator nonempty TopDef "" ;
 
 Ar. 	   Arg ::= Type Ident;
 
 separator  Arg "," ;
+
+
+-- Class elements ------------------------------------------
+
+ClsMethod.	ClsElems ::= Type Ident "(" [Arg] ")" Block ;
+
+ClsField. 	ClsElems ::= Type Ident ";" ;
+
+separator	ClsElems "" ;
 
 -- statements ----------------------------------------------
 
@@ -46,23 +59,61 @@ CondElse.  Stmt ::= "if" "(" Expr ")" Stmt "else" Stmt  ;
 
 While.     Stmt ::= "while" "(" Expr ")" Stmt ;
 
+For. 	   Stmt ::= "for" "(" Type Ident ":" Ident ")" Stmt ;
+
 SExp.      Stmt ::= Expr  ";" ;
 
 -- Types ---------------------------------------------------
 
-Int.       Type ::= "int" ;
+Int.       BasicType ::= "int" ;
 
-Str.       Type ::= "string" ;
+Str.       BasicType ::= "string" ;
 
-Bool.      Type ::= "boolean" ;
+Bool.      BasicType ::= "boolean" ;
 
-Void.      Type ::= "void" ;
+Void.      BasicType ::= "void" ;
 
-internal   Fun. Type ::= Type "(" [Type] ")" ;
+internal   Fun. BasicType ::= Type "(" [Type] ")" ;
+
+
+
+BType. 		TypeName ::= BasicType ;
+
+ClsType.	TypeName ::= Ident ;
+
+
+ArrayType. 	Type ::= TypeName "[]" ;
+
+NormalType.	Type ::= TypeName ;
+
+-- ToDO: clsType
+
+-- TODO: Arrays
 
 separator  Type "," ;
 
 -- Expressions ---------------------------------------------
+
+
+--- todo   Arr[Exp] +
+-- TODO:  method . +
+-- TODO: attr . +
+-- TODO: = new [] +
+-- TODO: = new TypeName? +
+
+
+
+EAttr.     Expr6 ::= Expr6 "." Ident ;
+
+EMetCall.  Expr6 ::= Expr6 "." Ident "(" [Expr] ")";
+
+ECastNull. Expr6 ::= "(" Type ")" "null" ;
+
+EAt. 	   Expr6 ::= Expr6 "[" Expr "]"  ;
+
+ENewArr.   Expr6 ::= "new" TypeName "[" Expr "]" ;
+
+ENewCls.   Expr6 ::= "new" Ident ;
 
 EVar.      Expr6 ::= Ident ;
 
