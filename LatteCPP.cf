@@ -43,11 +43,11 @@ Init.      Item ::= Ident "=" Expr ;
 
 separator nonempty Item "," ;
 
-Ass.       Stmt ::= Ident "=" Expr  ";" ;
+Ass.       Stmt ::= LVal "=" Expr  ";" ;
 
-Incr.      Stmt ::= Ident "++"  ";" ;
+Incr.      Stmt ::= LVal "++"  ";" ;
 
-Decr.      Stmt ::= Ident "--"  ";" ;
+Decr.      Stmt ::= LVal "--"  ";" ;
 
 Ret.       Stmt ::= "return" Expr ";" ;
 
@@ -76,7 +76,6 @@ Void.      BasicType ::= "void" ;
 internal   Fun. BasicType ::= Type "(" [Type] ")" ;
 
 
-
 BType. 		TypeName ::= BasicType ;
 
 ClsType.	TypeName ::= Ident ;
@@ -102,16 +101,23 @@ separator  Type "," ;
 -- TODO: = new TypeName? +
 
 
+LvVar.     LVal ::= Ident ;
+
+LvTab.	   LVal ::= Expr6 "[" Expr "]"  ;
+
+LvAttr.    LVal ::= Expr6 "." Ident ;
 
 EAttr.     Expr6 ::= Expr6 "." Ident ;
 
 EMetCall.  Expr6 ::= Expr6 "." Ident "(" [Expr] ")";
 
-ECastNull. Expr6 ::= "(" Type ")" "null" ;
+ECastNull. Expr6 ::= "(" Ident ")" "null" ;
 
 EAt. 	   Expr6 ::= Expr6 "[" Expr "]"  ;
 
-ENewArr.   Expr6 ::= "new" TypeName "[" Expr "]" ;
+ENewArr.   Expr6 ::= "new" BasicType "[" Expr "]" ;
+
+ENewClArr. Expr6 ::= "new" Ident "[" Expr "]" ;
 
 ENewCls.   Expr6 ::= "new" Ident ;
 
