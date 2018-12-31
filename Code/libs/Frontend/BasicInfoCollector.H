@@ -2,8 +2,8 @@
 #define BASICINFO_HEADER
 /* You might want to change the above name. */
 
-#include "Absyn.H"
-#include "Environment.H"
+#include "../Absyn.H"
+#include "../Environment.H"
 #include <string>
 
 using std::string;
