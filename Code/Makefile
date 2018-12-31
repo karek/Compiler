@@ -9,7 +9,7 @@ BISON = bison
 BISON_OPTS = -t -pLatteCPP
 
 OBJS = libs/Absyn.o libs/Lexer.o libs/Parser.o libs/Printer.o \
-		libs/frontend/Analyzer.o libs/frontend/BasicInfoCollector.o libs/Environment.o
+		libs/Frontend/Analyzer.o libs/Frontend/BasicInfoCollector.o libs/Environment.o
 #Compiler.o
 
 .PHONY: clean distclean

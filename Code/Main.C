@@ -4,12 +4,12 @@
 /****************************************************************************/
 #include <stdio.h>
 #include <iostream>
-#include "Absyn.H"
-#include "Parser.H"
-#include "Printer.H"
+#include "libs/Absyn.H"
+#include "libs/Parser.H"
+#include "libs/Printer.H"
 // #include "SemanticAnalyzer.H"
 // #include "BasicInfoCollector.H"
-#include "Analyzer.H"
+#include "libs/Frontend/Analyzer.H"
 // #include "Compiler.H"
 
 using namespace std;

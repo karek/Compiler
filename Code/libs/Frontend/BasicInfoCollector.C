@@ -25,6 +25,7 @@ void BasicInfoCollector::visitItem(Item *t) {}            // abstract class
 void BasicInfoCollector::visitBasicType(BasicType *t) {}  // abstract class
 void BasicInfoCollector::visitTypeName(TypeName *t) {}    // abstract class
 void BasicInfoCollector::visitType(Type *t) {}            // abstract class
+void BasicInfoCollector::visitLVal(LVal* t) {}            //abstract class
 void BasicInfoCollector::visitExpr(Expr *t) {}            // abstract class
 void BasicInfoCollector::visitAddOp(AddOp *t) {}          // abstract class
 void BasicInfoCollector::visitMulOp(MulOp *t) {}          // abstract class
@@ -144,20 +145,20 @@ void BasicInfoCollector::visitDecl(Decl *decl) {
 void BasicInfoCollector::visitAss(Ass *ass) {
     /* Code For Ass Goes Here */
 
-    visitIdent(ass->ident_);
+    ass->lval_->accept(this);
     ass->expr_->accept(this);
 }
 
 void BasicInfoCollector::visitIncr(Incr *incr) {
     /* Code For Incr Goes Here */
 
-    visitIdent(incr->ident_);
+    incr->lval_->accept(this);
 }
 
 void BasicInfoCollector::visitDecr(Decr *decr) {
     /* Code For Decr Goes Here */
 
-    visitIdent(decr->ident_);
+    decr->lval_->accept(this);
 }
 
 void BasicInfoCollector::visitRet(Ret *ret) {
@@ -267,6 +268,26 @@ void BasicInfoCollector::visitNormalType(NormalType *normaltype) {
     normaltype->typename_->accept(this);
 }
 
+void BasicInfoCollector::visitLvVar(LvVar *lvvar) {
+    /* Code For LvVar Goes Here */
+
+    visitIdent(lvvar->ident_);
+}
+
+void BasicInfoCollector::visitLvTab(LvTab *lvtab) {
+    /* Code For LvTab Goes Here */
+
+    lvtab->expr_1->accept(this);
+    lvtab->expr_2->accept(this);
+}
+
+void BasicInfoCollector::visitLvAttr(LvAttr *lvattr) {
+    /* Code For LvAttr Goes Here */
+
+    lvattr->expr_->accept(this);
+    visitIdent(lvattr->ident_);
+}
+
 void BasicInfoCollector::visitEAttr(EAttr *eattr) {
     /* Code For EAttr Goes Here */
     throw("Classes " + notImplemented);
@@ -285,7 +306,7 @@ void BasicInfoCollector::visitEMetCall(EMetCall *emetcall) {
 void BasicInfoCollector::visitECastNull(ECastNull *ecastnull) {
     /* Code For ECastNull Goes Here */
     throw("Classes " + notImplemented);
-    ecastnull->type_->accept(this);
+    visitIdent(ecastnull->ident_);
 }
 
 void BasicInfoCollector::visitEAt(EAt *eat) {
@@ -298,8 +319,15 @@ void BasicInfoCollector::visitEAt(EAt *eat) {
 void BasicInfoCollector::visitENewArr(ENewArr *enewarr) {
     /* Code For ENewArr Goes Here */
     throw("Arrays " + notImplemented);
-    enewarr->typename_->accept(this);
+    enewarr->basictype_->accept(this);
     enewarr->expr_->accept(this);
+}
+
+void BasicInfoCollector::visitENewClArr(ENewClArr *enewclarr) {
+    /* Code For ENewClArr Goes Here */
+
+    visitIdent(enewclarr->ident_);
+    enewclarr->expr_->accept(this);
 }
 
 void BasicInfoCollector::visitENewCls(ENewCls *enewcls) {

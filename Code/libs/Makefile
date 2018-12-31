@@ -16,8 +16,8 @@ all: $(OBJS)
 
 clean:
 	rm -f *.o
-	cd frontend/ && make clean
-	cd backend/ && make clean
+	cd Frontend/ && make clean
+	# cd Backend/ && make clean
 # 
 # distclean: clean
 # 	rm -f Absyn.C Absyn.H Test.C Parser.C Parser.H Lexer.C Skeleton.C Skeleton.H Printer.C Printer.H LatteCPP.l LatteCPP.y LatteCPP.tex 
