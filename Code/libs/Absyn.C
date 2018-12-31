@@ -527,16 +527,16 @@ Decl *Decl::clone() const
 
 
 /********************   Ass    ********************/
-Ass::Ass(Ident p1, Expr *p2)
+Ass::Ass(LVal *p1, Expr *p2)
 {
-  ident_ = p1;
+  lval_ = p1;
   expr_ = p2;
 
 }
 
 Ass::Ass(const Ass & other)
 {
-  ident_ = other.ident_;
+  lval_ = other.lval_->clone();
   expr_ = other.expr_->clone();
 
 }
@@ -550,13 +550,14 @@ Ass &Ass::operator=(const Ass & other)
 
 void Ass::swap(Ass & other)
 {
-  std::swap(ident_, other.ident_);
+  std::swap(lval_, other.lval_);
   std::swap(expr_, other.expr_);
 
 }
 
 Ass::~Ass()
 {
+  delete(lval_);
   delete(expr_);
 
 }
@@ -574,15 +575,15 @@ Ass *Ass::clone() const
 
 
 /********************   Incr    ********************/
-Incr::Incr(Ident p1)
+Incr::Incr(LVal *p1)
 {
-  ident_ = p1;
+  lval_ = p1;
 
 }
 
 Incr::Incr(const Incr & other)
 {
-  ident_ = other.ident_;
+  lval_ = other.lval_->clone();
 
 }
 
@@ -595,12 +596,13 @@ Incr &Incr::operator=(const Incr & other)
 
 void Incr::swap(Incr & other)
 {
-  std::swap(ident_, other.ident_);
+  std::swap(lval_, other.lval_);
 
 }
 
 Incr::~Incr()
 {
+  delete(lval_);
 
 }
 
@@ -617,15 +619,15 @@ Incr *Incr::clone() const
 
 
 /********************   Decr    ********************/
-Decr::Decr(Ident p1)
+Decr::Decr(LVal *p1)
 {
-  ident_ = p1;
+  lval_ = p1;
 
 }
 
 Decr::Decr(const Decr & other)
 {
-  ident_ = other.ident_;
+  lval_ = other.lval_->clone();
 
 }
 
@@ -638,12 +640,13 @@ Decr &Decr::operator=(const Decr & other)
 
 void Decr::swap(Decr & other)
 {
-  std::swap(ident_, other.ident_);
+  std::swap(lval_, other.lval_);
 
 }
 
 Decr::~Decr()
 {
+  delete(lval_);
 
 }
 
@@ -1462,6 +1465,144 @@ NormalType *NormalType::clone() const
 
 
 
+/********************   LvVar    ********************/
+LvVar::LvVar(Ident p1)
+{
+  ident_ = p1;
+
+}
+
+LvVar::LvVar(const LvVar & other)
+{
+  ident_ = other.ident_;
+
+}
+
+LvVar &LvVar::operator=(const LvVar & other)
+{
+  LvVar tmp(other);
+  swap(tmp);
+  return *this;
+}
+
+void LvVar::swap(LvVar & other)
+{
+  std::swap(ident_, other.ident_);
+
+}
+
+LvVar::~LvVar()
+{
+
+}
+
+void LvVar::accept(Visitor *v)
+{
+  v->visitLvVar(this);
+}
+
+LvVar *LvVar::clone() const
+{
+  return new LvVar(*this);
+}
+
+
+
+/********************   LvTab    ********************/
+LvTab::LvTab(Expr *p1, Expr *p2)
+{
+  expr_1 = p1;
+  expr_2 = p2;
+
+}
+
+LvTab::LvTab(const LvTab & other)
+{
+  expr_1 = other.expr_1->clone();
+  expr_2 = other.expr_2->clone();
+
+}
+
+LvTab &LvTab::operator=(const LvTab & other)
+{
+  LvTab tmp(other);
+  swap(tmp);
+  return *this;
+}
+
+void LvTab::swap(LvTab & other)
+{
+  std::swap(expr_1, other.expr_1);
+  std::swap(expr_2, other.expr_2);
+
+}
+
+LvTab::~LvTab()
+{
+  delete(expr_1);
+  delete(expr_2);
+
+}
+
+void LvTab::accept(Visitor *v)
+{
+  v->visitLvTab(this);
+}
+
+LvTab *LvTab::clone() const
+{
+  return new LvTab(*this);
+}
+
+
+
+/********************   LvAttr    ********************/
+LvAttr::LvAttr(Expr *p1, Ident p2)
+{
+  expr_ = p1;
+  ident_ = p2;
+
+}
+
+LvAttr::LvAttr(const LvAttr & other)
+{
+  expr_ = other.expr_->clone();
+  ident_ = other.ident_;
+
+}
+
+LvAttr &LvAttr::operator=(const LvAttr & other)
+{
+  LvAttr tmp(other);
+  swap(tmp);
+  return *this;
+}
+
+void LvAttr::swap(LvAttr & other)
+{
+  std::swap(expr_, other.expr_);
+  std::swap(ident_, other.ident_);
+
+}
+
+LvAttr::~LvAttr()
+{
+  delete(expr_);
+
+}
+
+void LvAttr::accept(Visitor *v)
+{
+  v->visitLvAttr(this);
+}
+
+LvAttr *LvAttr::clone() const
+{
+  return new LvAttr(*this);
+}
+
+
+
 /********************   EAttr    ********************/
 EAttr::EAttr(Expr *p1, Ident p2)
 {
@@ -1561,15 +1702,15 @@ EMetCall *EMetCall::clone() const
 
 
 /********************   ECastNull    ********************/
-ECastNull::ECastNull(Type *p1)
+ECastNull::ECastNull(Ident p1)
 {
-  type_ = p1;
+  ident_ = p1;
 
 }
 
 ECastNull::ECastNull(const ECastNull & other)
 {
-  type_ = other.type_->clone();
+  ident_ = other.ident_;
 
 }
 
@@ -1582,13 +1723,12 @@ ECastNull &ECastNull::operator=(const ECastNull & other)
 
 void ECastNull::swap(ECastNull & other)
 {
-  std::swap(type_, other.type_);
+  std::swap(ident_, other.ident_);
 
 }
 
 ECastNull::~ECastNull()
 {
-  delete(type_);
 
 }
 
@@ -1653,16 +1793,16 @@ EAt *EAt::clone() const
 
 
 /********************   ENewArr    ********************/
-ENewArr::ENewArr(TypeName *p1, Expr *p2)
+ENewArr::ENewArr(BasicType *p1, Expr *p2)
 {
-  typename_ = p1;
+  basictype_ = p1;
   expr_ = p2;
 
 }
 
 ENewArr::ENewArr(const ENewArr & other)
 {
-  typename_ = other.typename_->clone();
+  basictype_ = other.basictype_->clone();
   expr_ = other.expr_->clone();
 
 }
@@ -1676,14 +1816,14 @@ ENewArr &ENewArr::operator=(const ENewArr & other)
 
 void ENewArr::swap(ENewArr & other)
 {
-  std::swap(typename_, other.typename_);
+  std::swap(basictype_, other.basictype_);
   std::swap(expr_, other.expr_);
 
 }
 
 ENewArr::~ENewArr()
 {
-  delete(typename_);
+  delete(basictype_);
   delete(expr_);
 
 }
@@ -1696,6 +1836,53 @@ void ENewArr::accept(Visitor *v)
 ENewArr *ENewArr::clone() const
 {
   return new ENewArr(*this);
+}
+
+
+
+/********************   ENewClArr    ********************/
+ENewClArr::ENewClArr(Ident p1, Expr *p2)
+{
+  ident_ = p1;
+  expr_ = p2;
+
+}
+
+ENewClArr::ENewClArr(const ENewClArr & other)
+{
+  ident_ = other.ident_;
+  expr_ = other.expr_->clone();
+
+}
+
+ENewClArr &ENewClArr::operator=(const ENewClArr & other)
+{
+  ENewClArr tmp(other);
+  swap(tmp);
+  return *this;
+}
+
+void ENewClArr::swap(ENewClArr & other)
+{
+  std::swap(ident_, other.ident_);
+  std::swap(expr_, other.expr_);
+
+}
+
+ENewClArr::~ENewClArr()
+{
+  delete(expr_);
+
+}
+
+void ENewClArr::accept(Visitor *v)
+{
+  v->visitENewClArr(this);
+}
+
+ENewClArr *ENewClArr::clone() const
+{
+  return new ENewClArr(*this);
 }
 
 

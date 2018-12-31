@@ -37,9 +37,9 @@ IDENT [a-zA-Z0-9'_]
 <YYINITIAL>"--"      	 return _SYMB_8;
 <YYINITIAL>":"      	 return _SYMB_9;
 <YYINITIAL>"[]"      	 return _SYMB_10;
-<YYINITIAL>"."      	 return _SYMB_11;
-<YYINITIAL>"["      	 return _SYMB_12;
-<YYINITIAL>"]"      	 return _SYMB_13;
+<YYINITIAL>"["      	 return _SYMB_11;
+<YYINITIAL>"]"      	 return _SYMB_12;
+<YYINITIAL>"."      	 return _SYMB_13;
 <YYINITIAL>"-"      	 return _SYMB_14;
 <YYINITIAL>"!"      	 return _SYMB_15;
 <YYINITIAL>"&&"      	 return _SYMB_16;

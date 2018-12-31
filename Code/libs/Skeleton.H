@@ -18,6 +18,7 @@ public:
   void visitBasicType(BasicType* p);
   void visitTypeName(TypeName* p);
   void visitType(Type* p);
+  void visitLVal(LVal* p);
   void visitExpr(Expr* p);
   void visitAddOp(AddOp* p);
   void visitMulOp(MulOp* p);
@@ -54,11 +55,15 @@ public:
   void visitClsType(ClsType* p);
   void visitArrayType(ArrayType* p);
   void visitNormalType(NormalType* p);
+  void visitLvVar(LvVar* p);
+  void visitLvTab(LvTab* p);
+  void visitLvAttr(LvAttr* p);
   void visitEAttr(EAttr* p);
   void visitEMetCall(EMetCall* p);
   void visitECastNull(ECastNull* p);
   void visitEAt(EAt* p);
   void visitENewArr(ENewArr* p);
+  void visitENewClArr(ENewClArr* p);
   void visitENewCls(ENewCls* p);
   void visitEVar(EVar* p);
   void visitELitInt(ELitInt* p);

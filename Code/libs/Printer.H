@@ -77,12 +77,17 @@ void render(char* s);
   void visitArrayType(ArrayType *p);
   void visitNormalType(NormalType *p);
   void visitListType(ListType* p);
+  void visitLVal(LVal *p); /* abstract class */
+  void visitLvVar(LvVar *p);
+  void visitLvTab(LvTab *p);
+  void visitLvAttr(LvAttr *p);
   void visitExpr(Expr *p); /* abstract class */
   void visitEAttr(EAttr *p);
   void visitEMetCall(EMetCall *p);
   void visitECastNull(ECastNull *p);
   void visitEAt(EAt *p);
   void visitENewArr(ENewArr *p);
+  void visitENewClArr(ENewClArr *p);
   void visitENewCls(ENewCls *p);
   void visitEVar(EVar *p);
   void visitELitInt(ELitInt *p);
@@ -233,12 +238,17 @@ class ShowAbsyn : public Visitor
   void visitArrayType(ArrayType *p);
   void visitNormalType(NormalType *p);
   void visitListType(ListType* p);
+  void visitLVal(LVal *p); /* abstract class */
+  void visitLvVar(LvVar *p);
+  void visitLvTab(LvTab *p);
+  void visitLvAttr(LvAttr *p);
   void visitExpr(Expr *p); /* abstract class */
   void visitEAttr(EAttr *p);
   void visitEMetCall(EMetCall *p);
   void visitECastNull(ECastNull *p);
   void visitEAt(EAt *p);
   void visitENewArr(ENewArr *p);
+  void visitENewClArr(ENewClArr *p);
   void visitENewCls(ENewCls *p);
   void visitEVar(EVar *p);
   void visitELitInt(ELitInt *p);

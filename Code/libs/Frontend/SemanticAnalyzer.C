@@ -1,4 +1,4 @@
-/*** BNFC-Generated Visitor Design Pattern Skeleton. ***/
+/*** BNFC-Generated Visitor Design Pattern SemanticAnalyzer. ***/
 /* This implements the common visitor design pattern.
    Note that this method uses Visitor-traversal of lists, so
    List->accept() does NOT traverse the list. This allows different
@@ -18,6 +18,7 @@ void SemanticAnalyzer::visitItem(Item* t) {} //abstract class
 void SemanticAnalyzer::visitBasicType(BasicType* t) {} //abstract class
 void SemanticAnalyzer::visitTypeName(TypeName* t) {} //abstract class
 void SemanticAnalyzer::visitType(Type* t) {} //abstract class
+void SemanticAnalyzer::visitLVal(LVal* t) {} //abstract class
 void SemanticAnalyzer::visitExpr(Expr* t) {} //abstract class
 void SemanticAnalyzer::visitAddOp(AddOp* t) {} //abstract class
 void SemanticAnalyzer::visitMulOp(MulOp* t) {} //abstract class
@@ -129,7 +130,7 @@ void SemanticAnalyzer::visitAss(Ass *ass)
 {
   /* Code For Ass Goes Here */
 
-  visitIdent(ass->ident_);
+  ass->lval_->accept(this);
   ass->expr_->accept(this);
 
 }
@@ -138,7 +139,7 @@ void SemanticAnalyzer::visitIncr(Incr *incr)
 {
   /* Code For Incr Goes Here */
 
-  visitIdent(incr->ident_);
+  incr->lval_->accept(this);
 
 }
 
@@ -146,7 +147,7 @@ void SemanticAnalyzer::visitDecr(Decr *decr)
 {
   /* Code For Decr Goes Here */
 
-  visitIdent(decr->ident_);
+  decr->lval_->accept(this);
 
 }
 
@@ -298,6 +299,32 @@ void SemanticAnalyzer::visitNormalType(NormalType *normaltype)
 
 }
 
+void SemanticAnalyzer::visitLvVar(LvVar *lvvar)
+{
+  /* Code For LvVar Goes Here */
+
+  visitIdent(lvvar->ident_);
+
+}
+
+void SemanticAnalyzer::visitLvTab(LvTab *lvtab)
+{
+  /* Code For LvTab Goes Here */
+
+  lvtab->expr_1->accept(this);
+  lvtab->expr_2->accept(this);
+
+}
+
+void SemanticAnalyzer::visitLvAttr(LvAttr *lvattr)
+{
+  /* Code For LvAttr Goes Here */
+
+  lvattr->expr_->accept(this);
+  visitIdent(lvattr->ident_);
+
+}
+
 void SemanticAnalyzer::visitEAttr(EAttr *eattr)
 {
   /* Code For EAttr Goes Here */
@@ -321,7 +348,7 @@ void SemanticAnalyzer::visitECastNull(ECastNull *ecastnull)
 {
   /* Code For ECastNull Goes Here */
 
-  ecastnull->type_->accept(this);
+  visitIdent(ecastnull->ident_);
 
 }
 
@@ -338,8 +365,17 @@ void SemanticAnalyzer::visitENewArr(ENewArr *enewarr)
 {
   /* Code For ENewArr Goes Here */
 
-  enewarr->typename_->accept(this);
+  enewarr->basictype_->accept(this);
   enewarr->expr_->accept(this);
+
+}
+
+void SemanticAnalyzer::visitENewClArr(ENewClArr *enewclarr)
+{
+  /* Code For ENewClArr Goes Here */
+
+  visitIdent(enewclarr->ident_);
+  enewclarr->expr_->accept(this);
 
 }
 

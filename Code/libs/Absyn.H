@@ -29,6 +29,7 @@ class Item;
 class BasicType;
 class TypeName;
 class Type;
+class LVal;
 class Expr;
 class AddOp;
 class MulOp;
@@ -65,11 +66,15 @@ class BType;
 class ClsType;
 class ArrayType;
 class NormalType;
+class LvVar;
+class LvTab;
+class LvAttr;
 class EAttr;
 class EMetCall;
 class ECastNull;
 class EAt;
 class ENewArr;
+class ENewClArr;
 class ENewCls;
 class EVar;
 class ELitInt;
@@ -119,6 +124,7 @@ public:
   virtual void visitBasicType(BasicType *p) = 0;
   virtual void visitTypeName(TypeName *p) = 0;
   virtual void visitType(Type *p) = 0;
+  virtual void visitLVal(LVal *p) = 0;
   virtual void visitExpr(Expr *p) = 0;
   virtual void visitAddOp(AddOp *p) = 0;
   virtual void visitMulOp(MulOp *p) = 0;
@@ -155,11 +161,15 @@ public:
   virtual void visitClsType(ClsType *p) = 0;
   virtual void visitArrayType(ArrayType *p) = 0;
   virtual void visitNormalType(NormalType *p) = 0;
+  virtual void visitLvVar(LvVar *p) = 0;
+  virtual void visitLvTab(LvTab *p) = 0;
+  virtual void visitLvAttr(LvAttr *p) = 0;
   virtual void visitEAttr(EAttr *p) = 0;
   virtual void visitEMetCall(EMetCall *p) = 0;
   virtual void visitECastNull(ECastNull *p) = 0;
   virtual void visitEAt(EAt *p) = 0;
   virtual void visitENewArr(ENewArr *p) = 0;
+  virtual void visitENewClArr(ENewClArr *p) = 0;
   virtual void visitENewCls(ENewCls *p) = 0;
   virtual void visitEVar(EVar *p) = 0;
   virtual void visitELitInt(ELitInt *p) = 0;
@@ -280,6 +290,13 @@ class Type : public Visitable
 {
 public:
   virtual Type *clone() const = 0;
+  int line_number;
+};
+
+class LVal : public Visitable
+{
+public:
+  virtual LVal *clone() const = 0;
   int line_number;
 };
 
@@ -481,12 +498,12 @@ public:
 class Ass : public Stmt
 {
 public:
-  Ident ident_;
+  LVal *lval_;
   Expr *expr_;
 
   Ass(const Ass &);
   Ass &operator=(const Ass &);
-  Ass(Ident p1, Expr *p2);
+  Ass(LVal *p1, Expr *p2);
   ~Ass();
   virtual void accept(Visitor *v);
   virtual Ass *clone() const;
@@ -496,11 +513,11 @@ public:
 class Incr : public Stmt
 {
 public:
-  Ident ident_;
+  LVal *lval_;
 
   Incr(const Incr &);
   Incr &operator=(const Incr &);
-  Incr(Ident p1);
+  Incr(LVal *p1);
   ~Incr();
   virtual void accept(Visitor *v);
   virtual Incr *clone() const;
@@ -510,11 +527,11 @@ public:
 class Decr : public Stmt
 {
 public:
-  Ident ident_;
+  LVal *lval_;
 
   Decr(const Decr &);
   Decr &operator=(const Decr &);
-  Decr(Ident p1);
+  Decr(LVal *p1);
   ~Decr();
   virtual void accept(Visitor *v);
   virtual Decr *clone() const;
@@ -777,6 +794,50 @@ public:
   void swap(NormalType &);
 };
 
+class LvVar : public LVal
+{
+public:
+  Ident ident_;
+
+  LvVar(const LvVar &);
+  LvVar &operator=(const LvVar &);
+  LvVar(Ident p1);
+  ~LvVar();
+  virtual void accept(Visitor *v);
+  virtual LvVar *clone() const;
+  void swap(LvVar &);
+};
+
+class LvTab : public LVal
+{
+public:
+  Expr *expr_1;
+  Expr *expr_2;
+
+  LvTab(const LvTab &);
+  LvTab &operator=(const LvTab &);
+  LvTab(Expr *p1, Expr *p2);
+  ~LvTab();
+  virtual void accept(Visitor *v);
+  virtual LvTab *clone() const;
+  void swap(LvTab &);
+};
+
+class LvAttr : public LVal
+{
+public:
+  Expr *expr_;
+  Ident ident_;
+
+  LvAttr(const LvAttr &);
+  LvAttr &operator=(const LvAttr &);
+  LvAttr(Expr *p1, Ident p2);
+  ~LvAttr();
+  virtual void accept(Visitor *v);
+  virtual LvAttr *clone() const;
+  void swap(LvAttr &);
+};
+
 class EAttr : public Expr
 {
 public:
@@ -811,11 +872,11 @@ public:
 class ECastNull : public Expr
 {
 public:
-  Type *type_;
+  Ident ident_;
 
   ECastNull(const ECastNull &);
   ECastNull &operator=(const ECastNull &);
-  ECastNull(Type *p1);
+  ECastNull(Ident p1);
   ~ECastNull();
   virtual void accept(Visitor *v);
   virtual ECastNull *clone() const;
@@ -840,16 +901,31 @@ public:
 class ENewArr : public Expr
 {
 public:
-  TypeName *typename_;
+  BasicType *basictype_;
   Expr *expr_;
 
   ENewArr(const ENewArr &);
   ENewArr &operator=(const ENewArr &);
-  ENewArr(TypeName *p1, Expr *p2);
+  ENewArr(BasicType *p1, Expr *p2);
   ~ENewArr();
   virtual void accept(Visitor *v);
   virtual ENewArr *clone() const;
   void swap(ENewArr &);
+};
+
+class ENewClArr : public Expr
+{
+public:
+  Ident ident_;
+  Expr *expr_;
+
+  ENewClArr(const ENewClArr &);
+  ENewClArr &operator=(const ENewClArr &);
+  ENewClArr(Ident p1, Expr *p2);
+  ~ENewClArr();
+  virtual void accept(Visitor *v);
+  virtual ENewClArr *clone() const;
+  void swap(ENewClArr &);
 };
 
 class ENewCls : public Expr

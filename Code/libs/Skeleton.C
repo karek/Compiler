@@ -18,6 +18,7 @@ void Skeleton::visitItem(Item* t) {} //abstract class
 void Skeleton::visitBasicType(BasicType* t) {} //abstract class
 void Skeleton::visitTypeName(TypeName* t) {} //abstract class
 void Skeleton::visitType(Type* t) {} //abstract class
+void Skeleton::visitLVal(LVal* t) {} //abstract class
 void Skeleton::visitExpr(Expr* t) {} //abstract class
 void Skeleton::visitAddOp(AddOp* t) {} //abstract class
 void Skeleton::visitMulOp(MulOp* t) {} //abstract class
@@ -126,7 +127,7 @@ void Skeleton::visitAss(Ass *ass)
 {
   /* Code For Ass Goes Here */
 
-  visitIdent(ass->ident_);
+  ass->lval_->accept(this);
   ass->expr_->accept(this);
 
 }
@@ -135,7 +136,7 @@ void Skeleton::visitIncr(Incr *incr)
 {
   /* Code For Incr Goes Here */
 
-  visitIdent(incr->ident_);
+  incr->lval_->accept(this);
 
 }
 
@@ -143,7 +144,7 @@ void Skeleton::visitDecr(Decr *decr)
 {
   /* Code For Decr Goes Here */
 
-  visitIdent(decr->ident_);
+  decr->lval_->accept(this);
 
 }
 
@@ -181,7 +182,7 @@ void Skeleton::visitCondElse(CondElse *condelse)
 
 }
 
-void Skeleton::visitWhile(While *w)
+void Skeleton::visitWhile(While *while)
 {
   /* Code For While Goes Here */
 
@@ -190,7 +191,7 @@ void Skeleton::visitWhile(While *w)
 
 }
 
-void Skeleton::visitFor(For *f)
+void Skeleton::visitFor(For *for)
 {
   /* Code For For Goes Here */
 
@@ -240,14 +241,14 @@ void Skeleton::visitStr(Str *str)
 
 }
 
-void Skeleton::visitBool(Bool *b)
+void Skeleton::visitBool(Bool *bool)
 {
   /* Code For Bool Goes Here */
 
 
 }
 
-void Skeleton::visitVoid(Void *v)
+void Skeleton::visitVoid(Void *void)
 {
   /* Code For Void Goes Here */
 
@@ -295,6 +296,32 @@ void Skeleton::visitNormalType(NormalType *normaltype)
 
 }
 
+void Skeleton::visitLvVar(LvVar *lvvar)
+{
+  /* Code For LvVar Goes Here */
+
+  visitIdent(lvvar->ident_);
+
+}
+
+void Skeleton::visitLvTab(LvTab *lvtab)
+{
+  /* Code For LvTab Goes Here */
+
+  lvtab->expr_1->accept(this);
+  lvtab->expr_2->accept(this);
+
+}
+
+void Skeleton::visitLvAttr(LvAttr *lvattr)
+{
+  /* Code For LvAttr Goes Here */
+
+  lvattr->expr_->accept(this);
+  visitIdent(lvattr->ident_);
+
+}
+
 void Skeleton::visitEAttr(EAttr *eattr)
 {
   /* Code For EAttr Goes Here */
@@ -318,7 +345,7 @@ void Skeleton::visitECastNull(ECastNull *ecastnull)
 {
   /* Code For ECastNull Goes Here */
 
-  ecastnull->type_->accept(this);
+  visitIdent(ecastnull->ident_);
 
 }
 
@@ -335,8 +362,17 @@ void Skeleton::visitENewArr(ENewArr *enewarr)
 {
   /* Code For ENewArr Goes Here */
 
-  enewarr->typename_->accept(this);
+  enewarr->basictype_->accept(this);
   enewarr->expr_->accept(this);
+
+}
+
+void Skeleton::visitENewClArr(ENewClArr *enewclarr)
+{
+  /* Code For ENewClArr Goes Here */
+
+  visitIdent(enewclarr->ident_);
+  enewclarr->expr_->accept(this);
 
 }
 

@@ -21,6 +21,7 @@ class BasicType;
 class TypeName;
 class Type;
 class ListType;
+class LVal;
 class Expr;
 class ListExpr;
 class AddOp;
@@ -49,6 +50,7 @@ typedef union
   TypeName* typename_;
   Type* type_;
   ListType* listtype_;
+  LVal* lval_;
   Expr* expr_;
   ListExpr* listexpr_;
   AddOp* addop_;
