@@ -10,6 +10,6 @@ void Analyzer::analyze(Visitable* v) {
 	Env e;
 	BasicInfoCollector b;
 	b.collect(v, &e);
-
+	e.printFunctions();
 	
 }

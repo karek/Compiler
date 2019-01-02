@@ -45,7 +45,7 @@ Printer.o: Printer.C Printer.H Absyn.H
 # SemanticAnalyzer.o: SemanticAnalyzer.C SemanticAnalyzer.H Absyn.H
 # 	${CC} ${CCFLAGS} -c SemanticAnalyzer.C
 
-Environment.o: Environment.C Environment.H Absyn.H
+Environment.o: Environment.C Environment.H Absyn.H Types.H
 	${CC} ${CCFLAGS} -c Environment.C
 
 # BasicInfoCollector.o: BasicInfoCollector.C BasicInfoCollector.H Absyn.H

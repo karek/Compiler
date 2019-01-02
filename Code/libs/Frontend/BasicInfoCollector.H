@@ -15,6 +15,8 @@ class BasicInfoCollector : public Visitor
 {
 private:
   Env* env;
+  TType lastType;
+  vector<pair<string, TType> > fargs;
 
 public:
   void collect(Visitable* v, Env* e);

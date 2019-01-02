@@ -61,23 +61,25 @@ void BasicInfoCollector::visitFnDef(FnDef *fndef) {
     /* Code For FnDef Goes Here */
 
     fndef->type_->accept(this);
+    TType retT = lastType;
+
+    visitIdent(fndef->ident_);
 
 
+    fargs.clear();
+    fndef->listarg_->accept(this);
+
+
+    
     if (!env->existsFunction(fndef->ident_)) {
-        env->addFunction(fndef->ident_); // TODO: add args and result type
+        env->addFunction(fndef->ident_, retT, fargs); 
     }
     else { 
         throwFunctionDeclared(fndef->ident_, fndef->line_number);
     }
 
-    visitIdent(fndef->ident_);
-
-
-    fndef->listarg_->accept(this);
-
-
+   
     fndef->block_->accept(this);
-    
 }
 
 void BasicInfoCollector::visitClsDef(ClsDef *clsdef) {
@@ -100,6 +102,7 @@ void BasicInfoCollector::visitAr(Ar *ar) {
     /* Code For Ar Goes Here */
 
     ar->type_->accept(this);
+    fargs.push_back({ar->ident_, lastType});
     visitIdent(ar->ident_);
 }
 
@@ -223,18 +226,22 @@ void BasicInfoCollector::visitInit(Init *init) {
 
 void BasicInfoCollector::visitInt(Int *i) {
     /* Code For Int Goes Here */
+    lastType = TType(vType::tInt);
 }
 
 void BasicInfoCollector::visitStr(Str *str) {
     /* Code For Str Goes Here */
+    lastType = TType(vType::tStr);
 }
 
 void BasicInfoCollector::visitBool(Bool *b) {
     /* Code For Bool Goes Here */
+    lastType = TType(vType::tBool);
 }
 
 void BasicInfoCollector::visitVoid(Void *v) {
     /* Code For Void Goes Here */
+    lastType = TType(vType::tVoid);
 }
 
 void BasicInfoCollector::visitFun(Fun *fun) {
