@@ -13,6 +13,9 @@
 // #include "Compiler.H"
 
 using namespace std;
+const string CODE_BOLD ="\e[1m";
+const string CODE_WRONG ="\e[31m";
+const string CODE_END = "\e[0m";
 
 int main(int argc, char **argv) {
     FILE *input;
@@ -31,7 +34,7 @@ int main(int argc, char **argv) {
         try {
             a.analyze(parse_tree);
         } catch (string s) {
-            cerr << s << "\n";
+            cerr << CODE_BOLD << CODE_WRONG << "Error: " << CODE_END << s << "\n";
             return 1;
         }
 

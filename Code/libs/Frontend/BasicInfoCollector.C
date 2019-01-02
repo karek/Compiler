@@ -41,7 +41,17 @@ void BasicInfoCollector::collect(Visitable *v, Env *e) {
 
 void BasicInfoCollector::checkMain() {
     if (!env->existsFunction("main")) {
-        string s = "There is no function main\n";
+        string s = "There is no function main.\n";
+        throw(s);
+    }
+
+    if (!env->getRetType("main").isInt()) {
+        string s = "Function main should return int type.\n";
+        throw(s);
+    }
+
+    if (env->getArgs("main").size() > 0) {
+        string s = "Function main should not take any arguments.\n";
         throw(s);
     }
 

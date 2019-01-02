@@ -10,13 +10,17 @@ bool Env::existsFunction(string s) {
 
 
 void Env::addFunction(string name, TType retType, vector<pair<string, TType> > args) {
-
-	cerr << retType.isInt() << "\n";
 	functionsMap[name] = {retType, args};
-
-
 }
 
+
+TType Env::getRetType(string name) {
+	return functionsMap[name].first;
+}
+
+vector<pair<string, TType>> Env::getArgs(string name) {
+	return functionsMap[name].second;
+}
 
 void Env::printFunctions() {
 	cerr << "Functions declared:\n";

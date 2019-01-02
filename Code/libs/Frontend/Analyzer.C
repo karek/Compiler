@@ -6,7 +6,7 @@ using namespace std;
 
 void Analyzer::analyze(Visitable* v) {
 
-	cerr << "Analyzing\n";
+	cerr << "Analyzing...\n\n";
 	Env e;
 	BasicInfoCollector b;
 	b.collect(v, &e);
