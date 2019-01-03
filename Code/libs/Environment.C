@@ -1,5 +1,6 @@
 #include "Environment.H"
 #include <iostream>
+#include <cassert>
 
 using namespace std;
 
@@ -20,6 +21,34 @@ TType Env::getRetType(string name) {
 
 vector<pair<string, TType>> Env::getArgs(string name) {
 	return functionsMap[name].second;
+}
+
+void Env::beginBlock() {
+	varsStack.push_back({});
+}
+
+void Env::endBlock() {
+	varsStack.pop_back();
+}
+
+void Env::addVarToCurScope(string s, TType t) {
+	assert(varsStack.size() > 0);
+	assert(varsStack.back().count(s) == 0);
+	varsStack.back()[s] = t;
+
+}
+
+bool Env::isDeclaredInCurScope(string s) {
+	assert(varsStack.size() > 0);
+	return varsStack.back().count(s);
+}
+
+bool Env::lookupVar(string s) {
+	for(int i = varsStack.size() - 1; i >= 0; i--) {
+		if (varsStack[i].count(s))
+			return true;
+	}
+	return false;
 }
 
 void Env::printFunctions() {

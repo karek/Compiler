@@ -11,7 +11,34 @@ using namespace std;
 
 void throwFunctionDeclared(string name, int line) {
     stringstream ss;
-    ss << "Line " << line << ": function \"" << name  << "\" was declared before\n";
+    ss << "Line " << line << ": function \"" << name  << "\" was declared before.\n";
+    throw(ss.str());
+}
+
+// TODO: FUNCTIONS UNDECLARED HAVE TO BE DONE LATER 
+void throwFunctionUndeclared(string name, int line) {
+    stringstream ss;
+    ss << "Line " << line << ": trying to call undeclared function \"" << name  << "\".\n";
+    throw(ss.str());
+}
+
+void throwVariableDeclared(string name, int line, TType t) {
+    stringstream ss;
+    ss << "Line " << line << ": variable \"" << name  << "\" of type "  << t.toStr() 
+    << " was declared before.\n";
+    throw(ss.str());
+}
+
+void throwVoidVar(string name, int line) {
+    stringstream ss;
+    ss << "Line " << line << ": variable \"" << name  << "\" can not be of type void. \n";
+    throw(ss.str());
+}
+
+
+void throwUseofUndeclaredVar(string name, int line) {
+    stringstream ss;
+    ss << "Line " << line << ": variable \"" << name  << "\" was not declared before use.\n";
     throw(ss.str());
 }
 
@@ -61,10 +88,6 @@ void BasicInfoCollector::visitProg(Prog *prog) {
     /* Code For Prog Goes Here */
 
     prog->listtopdef_->accept(this);
-
-    // stringstream ss;
-    // ss << "Variable \""  << "\" undeclared!";
-    // throw(ss.str());
 }
 
 void BasicInfoCollector::visitFnDef(FnDef *fndef) {
@@ -88,8 +111,12 @@ void BasicInfoCollector::visitFnDef(FnDef *fndef) {
         throwFunctionDeclared(fndef->ident_, fndef->line_number);
     }
 
-   
+    env->beginBlock();  // Arguments vars
+    for(int i = 0; i < fargs.size(); i++) {
+        env->addVarToCurScope(fargs[i].first, fargs[i].second);
+    }
     fndef->block_->accept(this);
+    env->endBlock();
 }
 
 void BasicInfoCollector::visitClsDef(ClsDef *clsdef) {
@@ -134,8 +161,9 @@ void BasicInfoCollector::visitClsField(ClsField *clsfield) {
 
 void BasicInfoCollector::visitBlk(Blk *blk) {
     /* Code For Blk Goes Here */
-
+    env->beginBlock();
     blk->liststmt_->accept(this);
+    env->endBlock();
 }
 
 void BasicInfoCollector::visitEmpty(Empty *empty) {
@@ -150,7 +178,7 @@ void BasicInfoCollector::visitBStmt(BStmt *bstmt) {
 
 void BasicInfoCollector::visitDecl(Decl *decl) {
     /* Code For Decl Goes Here */
-
+ 
     decl->type_->accept(this);
     decl->listitem_->accept(this);
 }
@@ -224,11 +252,30 @@ void BasicInfoCollector::visitSExp(SExp *sexp) {
 void BasicInfoCollector::visitNoInit(NoInit *noinit) {
     /* Code For NoInit Goes Here */
 
+    if (lastType.isVoid())
+        throwVoidVar(noinit->ident_, noinit->line_number);
+
+    if(env->isDeclaredInCurScope(noinit->ident_)) {
+        throwVariableDeclared(noinit->ident_, noinit->line_number, lastType);
+    }
+    else {
+        env->addVarToCurScope(noinit->ident_, lastType);
+    }
     visitIdent(noinit->ident_);
 }
 
 void BasicInfoCollector::visitInit(Init *init) {
     /* Code For Init Goes Here */
+
+    if (lastType.isVoid())
+        throwVoidVar(init->ident_, init->line_number);
+
+    if(env->isDeclaredInCurScope(init->ident_)) {
+        throwVariableDeclared(init->ident_, init->line_number, lastType);
+    }
+    else {
+        env->addVarToCurScope(init->ident_, lastType);
+    }
 
     visitIdent(init->ident_);
     init->expr_->accept(this);
@@ -257,8 +304,8 @@ void BasicInfoCollector::visitVoid(Void *v) {
 void BasicInfoCollector::visitFun(Fun *fun) {
     /* Code For Fun Goes Here */
 
-    fun->type_->accept(this);
-    fun->listtype_->accept(this);
+    // fun->type_->accept(this);
+    // fun->listtype_->accept(this);
 }
 
 void BasicInfoCollector::visitBType(BType *btype) {
@@ -287,7 +334,8 @@ void BasicInfoCollector::visitNormalType(NormalType *normaltype) {
 
 void BasicInfoCollector::visitLvVar(LvVar *lvvar) {
     /* Code For LvVar Goes Here */
-
+    if (!env->lookupVar(lvvar->ident_))
+        throwUseofUndeclaredVar(lvvar->ident_, lvvar->line_number);
     visitIdent(lvvar->ident_);
 }
 
@@ -355,7 +403,8 @@ void BasicInfoCollector::visitENewCls(ENewCls *enewcls) {
 
 void BasicInfoCollector::visitEVar(EVar *evar) {
     /* Code For EVar Goes Here */
-
+     if (!env->lookupVar(evar->ident_))
+        throwUseofUndeclaredVar(evar->ident_, evar->line_number);
     visitIdent(evar->ident_);
 }
 
@@ -376,8 +425,13 @@ void BasicInfoCollector::visitELitFalse(ELitFalse *elitfalse) {
 void BasicInfoCollector::visitEApp(EApp *eapp) {
     /* Code For EApp Goes Here */
 
+    // if (!env->existsFunction(eapp->ident_)) 
+        // throwFunctionUndeclared(eapp->ident_, eapp->line_number);
+
     visitIdent(eapp->ident_);
     eapp->listexpr_->accept(this);
+
+    //TODO: check if types  match?
 }
 
 void BasicInfoCollector::visitEString(EString *estring) {

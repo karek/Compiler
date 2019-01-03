@@ -20,12 +20,18 @@ public:
 	TType getRetType(string name);
 	vector<pair<string, TType> > getArgs(string name);
 
+	void beginBlock();
+	void endBlock();
+	void addVarToCurScope(string s, TType t);
+	bool lookupVar(string s);
+	bool isDeclaredInCurScope(string s);
+	
 
 
 private:
 	map<string, pair<TType, vector<pair<string, TType>>>> functionsMap;
 
-	vector<map<string, int> > varsStack;
+	vector<map<string, TType> > varsStack;
 
 
 
