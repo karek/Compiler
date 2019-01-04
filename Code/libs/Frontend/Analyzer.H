@@ -5,6 +5,7 @@
 #include <string>
 #include <vector>
 #include "BasicInfoCollector.H"
+#include "TypeChecker.H"
 #include "../Environment.H"
 
 using std::map;

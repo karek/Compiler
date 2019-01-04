@@ -11,5 +11,9 @@ void Analyzer::analyze(Visitable* v) {
 	BasicInfoCollector b;
 	b.collect(v, &e);
 	e.printFunctions();
+
+	TypeChecker tc;
+	tc.checkTypes(v, &e);
+
 	
 }

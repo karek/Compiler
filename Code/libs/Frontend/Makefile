@@ -8,7 +8,7 @@ FLEX_OPTS = -PLatteCPP
 BISON = bison
 BISON_OPTS = -t -pLatteCPP
 
-OBJS = Analyzer.o BasicInfoCollector.o
+OBJS = Analyzer.o BasicInfoCollector.o TypeChecker.o
 #Compiler.o
 
 .PHONY: clean distclean
@@ -25,4 +25,6 @@ BasicInfoCollector.o: BasicInfoCollector.C BasicInfoCollector.H ../Absyn.H
 Analyzer.o: Analyzer.C Analyzer.H ../Absyn.H
 	${CC} ${CCFLAGS} -c Analyzer.C
 
+TypeChecker.o: TypeChecker.C TypeChecker.H ../Absyn.H
+	${CC} ${CCFLAGS} -c TypeChecker.C
 

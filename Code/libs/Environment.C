@@ -43,6 +43,10 @@ bool Env::isDeclaredInCurScope(string s) {
 	return varsStack.back().count(s);
 }
 
+bool Env::hasAnyScope() {
+	return !varsStack.empty();
+}
+
 bool Env::lookupVar(string s) {
 	for(int i = varsStack.size() - 1; i >= 0; i--) {
 		if (varsStack[i].count(s))

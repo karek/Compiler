@@ -25,6 +25,7 @@ public:
 	void addVarToCurScope(string s, TType t);
 	bool lookupVar(string s);
 	bool isDeclaredInCurScope(string s);
+	bool hasAnyScope();
 	
 
 

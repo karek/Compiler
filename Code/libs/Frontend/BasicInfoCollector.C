@@ -11,34 +11,29 @@ using namespace std;
 
 void throwFunctionDeclared(string name, int line) {
     stringstream ss;
-    ss << "Line " << line << ": function \"" << name  << "\" was declared before.\n";
-    throw(ss.str());
-}
-
-// TODO: FUNCTIONS UNDECLARED HAVE TO BE DONE LATER 
-void throwFunctionUndeclared(string name, int line) {
-    stringstream ss;
-    ss << "Line " << line << ": trying to call undeclared function \"" << name  << "\".\n";
+    ss << "Line " << line << ": function \"" << name
+       << "\" was declared before.\n";
     throw(ss.str());
 }
 
 void throwVariableDeclared(string name, int line, TType t) {
     stringstream ss;
-    ss << "Line " << line << ": variable \"" << name  << "\" of type "  << t.toStr() 
-    << " was declared before.\n";
+    ss << "Line " << line << ": variable \"" << name << "\" of type "
+       << t.toStr() << " was declared before.\n";
     throw(ss.str());
 }
 
 void throwVoidVar(string name, int line) {
     stringstream ss;
-    ss << "Line " << line << ": variable \"" << name  << "\" can not be of type void. \n";
+    ss << "Line " << line << ": variable \"" << name
+       << "\" can not be of type void. \n";
     throw(ss.str());
 }
 
-
 void throwUseofUndeclaredVar(string name, int line) {
     stringstream ss;
-    ss << "Line " << line << ": variable \"" << name  << "\" was not declared before use.\n";
+    ss << "Line " << line << ": variable \"" << name
+       << "\" was not declared before use.\n";
     throw(ss.str());
 }
 
@@ -52,7 +47,7 @@ void BasicInfoCollector::visitItem(Item *t) {}            // abstract class
 void BasicInfoCollector::visitBasicType(BasicType *t) {}  // abstract class
 void BasicInfoCollector::visitTypeName(TypeName *t) {}    // abstract class
 void BasicInfoCollector::visitType(Type *t) {}            // abstract class
-void BasicInfoCollector::visitLVal(LVal* t) {}            //abstract class
+void BasicInfoCollector::visitLVal(LVal *t) {}            // abstract class
 void BasicInfoCollector::visitExpr(Expr *t) {}            // abstract class
 void BasicInfoCollector::visitAddOp(AddOp *t) {}          // abstract class
 void BasicInfoCollector::visitMulOp(MulOp *t) {}          // abstract class
@@ -62,9 +57,7 @@ void BasicInfoCollector::collect(Visitable *v, Env *e) {
     env = e;
     v->accept(this);
     checkMain();
-
 }
-
 
 void BasicInfoCollector::checkMain() {
     if (!env->existsFunction("main")) {
@@ -81,7 +74,6 @@ void BasicInfoCollector::checkMain() {
         string s = "Function main should not take any arguments.\n";
         throw(s);
     }
-
 }
 
 void BasicInfoCollector::visitProg(Prog *prog) {
@@ -98,21 +90,17 @@ void BasicInfoCollector::visitFnDef(FnDef *fndef) {
 
     visitIdent(fndef->ident_);
 
-
     fargs.clear();
     fndef->listarg_->accept(this);
 
-
-    
     if (!env->existsFunction(fndef->ident_)) {
-        env->addFunction(fndef->ident_, retT, fargs); 
-    }
-    else { 
+        env->addFunction(fndef->ident_, retT, fargs);
+    } else {
         throwFunctionDeclared(fndef->ident_, fndef->line_number);
     }
 
     env->beginBlock();  // Arguments vars
-    for(int i = 0; i < fargs.size(); i++) {
+    for (int i = 0; i < fargs.size(); i++) {
         env->addVarToCurScope(fargs[i].first, fargs[i].second);
     }
     fndef->block_->accept(this);
@@ -178,7 +166,7 @@ void BasicInfoCollector::visitBStmt(BStmt *bstmt) {
 
 void BasicInfoCollector::visitDecl(Decl *decl) {
     /* Code For Decl Goes Here */
- 
+
     decl->type_->accept(this);
     decl->listitem_->accept(this);
 }
@@ -255,10 +243,9 @@ void BasicInfoCollector::visitNoInit(NoInit *noinit) {
     if (lastType.isVoid())
         throwVoidVar(noinit->ident_, noinit->line_number);
 
-    if(env->isDeclaredInCurScope(noinit->ident_)) {
+    if (env->isDeclaredInCurScope(noinit->ident_)) {
         throwVariableDeclared(noinit->ident_, noinit->line_number, lastType);
-    }
-    else {
+    } else {
         env->addVarToCurScope(noinit->ident_, lastType);
     }
     visitIdent(noinit->ident_);
@@ -270,10 +257,9 @@ void BasicInfoCollector::visitInit(Init *init) {
     if (lastType.isVoid())
         throwVoidVar(init->ident_, init->line_number);
 
-    if(env->isDeclaredInCurScope(init->ident_)) {
+    if (env->isDeclaredInCurScope(init->ident_)) {
         throwVariableDeclared(init->ident_, init->line_number, lastType);
-    }
-    else {
+    } else {
         env->addVarToCurScope(init->ident_, lastType);
     }
 
@@ -403,7 +389,7 @@ void BasicInfoCollector::visitENewCls(ENewCls *enewcls) {
 
 void BasicInfoCollector::visitEVar(EVar *evar) {
     /* Code For EVar Goes Here */
-     if (!env->lookupVar(evar->ident_))
+    if (!env->lookupVar(evar->ident_))
         throwUseofUndeclaredVar(evar->ident_, evar->line_number);
     visitIdent(evar->ident_);
 }
@@ -425,13 +411,10 @@ void BasicInfoCollector::visitELitFalse(ELitFalse *elitfalse) {
 void BasicInfoCollector::visitEApp(EApp *eapp) {
     /* Code For EApp Goes Here */
 
-    // if (!env->existsFunction(eapp->ident_)) 
-        // throwFunctionUndeclared(eapp->ident_, eapp->line_number);
-
     visitIdent(eapp->ident_);
     eapp->listexpr_->accept(this);
 
-    //TODO: check if types  match?
+    // TODO: check if types  match?
 }
 
 void BasicInfoCollector::visitEString(EString *estring) {
