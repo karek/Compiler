@@ -4,15 +4,29 @@
    List->accept() does NOT traverse the list. This allows different
    algorithms to use context information differently. */
 
-#include "TypeChecker.H"
 #include <cassert>
 #include <sstream>
+#include "TypeChecker.H"
 using namespace std;
 
 void throwFunctionUndeclared(string name, int line) {
     stringstream ss;
     ss << "Line " << line << ": trying to call undeclared function \"" << name
        << "\".\n";
+    throw(ss.str());
+}
+
+void throwWrongType(int line, string expected, string got) {
+    stringstream ss;
+    ss << "Line " << line << ": wrong type of expression, expected " << expected
+       << " , received " << got << "\n";
+    throw(ss.str());
+}
+
+void throwWrongArgNumber(string name, int line, int expected, int got) {
+    stringstream ss;
+    ss << "Line " << line << ": wrong number of arguments in function call \""
+       << name << "\" " << "expected " << expected << ", received " << got << ".\n";
     throw(ss.str());
 }
 
@@ -332,6 +346,11 @@ void TypeChecker::visitEApp(EApp *eapp) {
     /* Code For EApp Goes Here */
     if (!env->existsFunction(eapp->ident_))
         throwFunctionUndeclared(eapp->ident_, eapp->line_number);
+
+    if (eapp->listexpr_->size() != env->getArgsNum(eapp->ident_))
+        throwWrongArgNumber(eapp->ident_, eapp->line_number,
+                            env->getArgsNum(eapp->ident_),
+                            eapp->listexpr_->size());
 
     visitIdent(eapp->ident_);
     eapp->listexpr_->accept(this);

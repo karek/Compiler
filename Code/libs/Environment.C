@@ -23,6 +23,10 @@ vector<pair<string, TType>> Env::getArgs(string name) {
 	return functionsMap[name].second;
 }
 
+int Env::getArgsNum(string name) {
+	return functionsMap[name].second.size();
+}
+
 void Env::beginBlock() {
 	varsStack.push_back({});
 }

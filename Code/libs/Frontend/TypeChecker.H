@@ -11,7 +11,6 @@ class TypeChecker : public Visitor
 private:
   Env* env;
   TType lastType;
-  vector<pair<string, TType> > fargs;
 
 public:
   void checkTypes(Visitable* v, Env* e);

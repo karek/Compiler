@@ -16,9 +16,10 @@ private:
 	string s_;
 	int i_;
 	bool b_;
+	vType typ;
 
 public: 
-	vType typ;
+	
 	TType() : s_(""), i_(0), b_(false) {
 		typ = vType::tNone;
 	}
@@ -60,6 +61,10 @@ public:
 	}
 
 
+	vType getTyp() const {
+		return typ;
+	}
+
 	string toStr() const {
 		switch(typ) {
 			// {tVoid, tInt, tBool, tString, tClass, tNone};
@@ -76,6 +81,10 @@ public:
 
 	void printType() const {
 		cerr << toStr() << "\n";
+	}
+
+	friend bool operator==(const TType& lhs, const TType& rhs){
+    	return lhs.getTyp() == rhs.getTyp();
 	}
 
 };

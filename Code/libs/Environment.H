@@ -19,6 +19,7 @@ public:
 	void printFunctions();
 	TType getRetType(string name);
 	vector<pair<string, TType> > getArgs(string name);
+	int getArgsNum(string name);
 
 	void beginBlock();
 	void endBlock();
