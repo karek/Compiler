@@ -440,10 +440,22 @@ void TypeChecker::visitEApp(EApp *eapp) {
                             env->getArgsNum(eapp->ident_),
                             eapp->listexpr_->size());
 
-    // TODO: Check arguments types
+    // Check arguments types
 
     visitIdent(eapp->ident_);
+
+    // vector<pair<string, TType>> fargs = env->getArgs(eapp->ident_);
+
+    // for (int i = 0; i < fargs.size(); i++) {
+    //     if (! )
+    //     env->addVarToCurScope(fargs[i].first, fargs[i].second);
+
+    // }
+
+
     eapp->listexpr_->accept(this);
+
+    lastType = env->getRetType(eapp->ident_);
 }
 
 void TypeChecker::visitEString(EString *estring) {
