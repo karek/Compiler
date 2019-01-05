@@ -15,4 +15,7 @@ void Analyzer::analyze(Visitable* v) {
 	TypeChecker tc;
 	tc.checkTypes(v, &e);
 
+	ReturnChecker rc;
+	rc.checkReturns(v, &e);
+
 }

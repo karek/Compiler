@@ -22,6 +22,7 @@ public:
   void collect(Visitable* v, Env* e);
 
   void checkMain();
+  void addPreimplementedFunctions();
 
 
   void visitProgram(Program* p);

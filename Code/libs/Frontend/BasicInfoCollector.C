@@ -57,6 +57,23 @@ void BasicInfoCollector::collect(Visitable *v, Env *e) {
     env = e;
     v->accept(this);
     checkMain();
+    addPreimplementedFunctions();
+}
+
+void BasicInfoCollector::addPreimplementedFunctions() {
+    vector<pair<string, TType> > args;
+
+    args.push_back({"x", TType(vType::tInt)});
+    env->addFunction("printInt", TType(vType::tVoid), args); 
+
+    args.clear();
+    args.push_back({"s", TType(vType::tStr)});
+    env->addFunction("printString", TType(vType::tVoid), args); 
+
+    args.clear();
+    env->addFunction("error", TType(vType::tVoid), args); 
+    env->addFunction("readInt", TType(vType::tInt), args); 
+    env->addFunction("readString", TType(vType::tStr), args); 
 }
 
 void BasicInfoCollector::checkMain() {
@@ -414,7 +431,6 @@ void BasicInfoCollector::visitEApp(EApp *eapp) {
     visitIdent(eapp->ident_);
     eapp->listexpr_->accept(this);
 
-    // TODO: check if types  match?
 }
 
 void BasicInfoCollector::visitEString(EString *estring) {

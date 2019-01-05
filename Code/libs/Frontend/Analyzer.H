@@ -6,12 +6,13 @@
 #include <vector>
 #include "BasicInfoCollector.H"
 #include "TypeChecker.H"
+#include "ReturnChecker.H"
 #include "../Environment.H"
 
 using std::map;
 using std::string;
 using std::vector;
-using std::pair;  // #include <utility>  ?
+using std::pair;
 
 
 
