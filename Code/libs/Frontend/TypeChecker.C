@@ -45,6 +45,15 @@ void throwCannotConcatenate(int line, string type1, string type2) {
     throw(ss.str());
 }
 
+void throwWrongArgType(string name, int line, int nr, string expected,
+                       string got) {
+    stringstream ss;
+    ss << "Line " << line << ": in function \"" << name << "\" "
+       << "argument number " << nr << " provided with wrong type "
+       << "expected " << expected << ", received " << got << ".\n";
+    throw(ss.str());
+}
+
 void throwCustomError(int line, string err) {
     stringstream ss;
     ss << "Line " << line << ": " << err << "\n";
@@ -235,7 +244,7 @@ void TypeChecker::visitCondElse(CondElse *condelse) {
     TType expected = TType(vType::tBool);
     if (!(expected == lastType)) {
         throwWrongType(condelse->line_number, expected.toStr(),
-                       lastType.toStr(), "if else ");
+                       lastType.toStr(), "if else");
     }
 
     condelse->stmt_1->accept(this);
@@ -440,18 +449,22 @@ void TypeChecker::visitEApp(EApp *eapp) {
                             env->getArgsNum(eapp->ident_),
                             eapp->listexpr_->size());
 
-    // Check arguments types
-
+    // Check argument types
     visitIdent(eapp->ident_);
 
-    // vector<pair<string, TType>> fargs = env->getArgs(eapp->ident_);
+    vector<pair<string, TType>> fargs = env->getArgs(eapp->ident_);
+    vector<TType> appTypes;
 
-    // for (int i = 0; i < fargs.size(); i++) {
-    //     if (! )
-    //     env->addVarToCurScope(fargs[i].first, fargs[i].second);
+    for (ListExpr::iterator i = eapp->listexpr_->begin(); i != eapp->listexpr_->end(); ++i) {
+        (*i)->accept(this);
+        appTypes.push_back(lastType);
+    }
 
-    // }
-
+    for (int i = 0; i < fargs.size(); i++) {
+        if (!(appTypes[i] == fargs[i].second))
+            throwWrongArgType(eapp->ident_, eapp->line_number, i+1,
+                              fargs[i].second.toStr(), appTypes[i].toStr());
+    }
 
     eapp->listexpr_->accept(this);
 
