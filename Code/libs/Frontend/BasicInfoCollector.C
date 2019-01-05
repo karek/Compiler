@@ -327,14 +327,14 @@ void BasicInfoCollector::visitLvVar(LvVar *lvvar) {
 
 void BasicInfoCollector::visitLvTab(LvTab *lvtab) {
     /* Code For LvTab Goes Here */
-
+    throw("Arrays " + notImplemented);
     lvtab->expr_1->accept(this);
     lvtab->expr_2->accept(this);
 }
 
 void BasicInfoCollector::visitLvAttr(LvAttr *lvattr) {
     /* Code For LvAttr Goes Here */
-
+    throw("Classes " + notImplemented);
     lvattr->expr_->accept(this);
     visitIdent(lvattr->ident_);
 }
@@ -376,7 +376,7 @@ void BasicInfoCollector::visitENewArr(ENewArr *enewarr) {
 
 void BasicInfoCollector::visitENewClArr(ENewClArr *enewclarr) {
     /* Code For ENewClArr Goes Here */
-
+    throw("Arrays " + notImplemented);
     visitIdent(enewclarr->ident_);
     enewclarr->expr_->accept(this);
 }

@@ -11,6 +11,9 @@ class TypeChecker : public Visitor
 private:
   Env* env;
   TType lastType;
+  TOp lastOp;
+  TType curFunType;
+  TRelop lastRelop;
 
 public:
   void checkTypes(Visitable* v, Env* e);

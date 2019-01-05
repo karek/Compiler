@@ -16,17 +16,38 @@ void throwFunctionUndeclared(string name, int line) {
     throw(ss.str());
 }
 
-void throwWrongType(int line, string expected, string got) {
+void throwWrongType(int line, string expected, string got, string what) {
     stringstream ss;
-    ss << "Line " << line << ": wrong type of expression, expected " << expected
-       << " , received " << got << "\n";
+    ss << "Line " << line << ": wrong type of expression in " << what
+       << ", expected " << expected << " , received " << got << "\n";
+    throw(ss.str());
+}
+
+void throwWrongTypeLog(int line, string expected, string got) {
+    stringstream ss;
+    ss << "Line " << line << ": wrong type in logical expression, expected "
+       << expected << " , received " << got << "\n";
     throw(ss.str());
 }
 
 void throwWrongArgNumber(string name, int line, int expected, int got) {
     stringstream ss;
     ss << "Line " << line << ": wrong number of arguments in function call \""
-       << name << "\" " << "expected " << expected << ", received " << got << ".\n";
+       << name << "\" "
+       << "expected " << expected << ", received " << got << ".\n";
+    throw(ss.str());
+}
+
+void throwCannotConcatenate(int line, string type1, string type2) {
+    stringstream ss;
+    ss << "Line " << line << ": can not concatenate (+) expressions of types "
+       << type1 << " " << type2 << "\n";
+    throw(ss.str());
+}
+
+void throwCustomError(int line, string err) {
+    stringstream ss;
+    ss << "Line " << line << ": " << err << "\n";
     throw(ss.str());
 }
 
@@ -62,9 +83,17 @@ void TypeChecker::visitFnDef(FnDef *fndef) {
     /* Code For FnDef Goes Here */
 
     fndef->type_->accept(this);
+    curFunType = lastType;
     visitIdent(fndef->ident_);
     fndef->listarg_->accept(this);
+
+    vector<pair<string, TType> > fargs = env->getArgs(fndef->ident_);
+    env->beginBlock();  // Arguments vars
+    for (int i = 0; i < fargs.size(); i++) {
+        env->addVarToCurScope(fargs[i].first, fargs[i].second);
+    }
     fndef->block_->accept(this);
+    env->endBlock();
 }
 
 void TypeChecker::visitClsDef(ClsDef *clsdef) {
@@ -107,8 +136,9 @@ void TypeChecker::visitClsField(ClsField *clsfield) {
 
 void TypeChecker::visitBlk(Blk *blk) {
     /* Code For Blk Goes Here */
-
+    env->beginBlock();
     blk->liststmt_->accept(this);
+    env->endBlock();
 }
 
 void TypeChecker::visitEmpty(Empty *empty) {
@@ -131,20 +161,39 @@ void TypeChecker::visitDecl(Decl *decl) {
 void TypeChecker::visitAss(Ass *ass) {
     /* Code For Ass Goes Here */
 
+    // l type = right type
     ass->lval_->accept(this);
+    TType lvalT = lastType;
     ass->expr_->accept(this);
+
+    if(!(lvalT == lastType)) {
+        throwWrongType(ass->line_number, lvalT.toStr(), lastType.toStr(),
+                       "assignment");
+    }
+
 }
 
 void TypeChecker::visitIncr(Incr *incr) {
     /* Code For Incr Goes Here */
-
+    // int
     incr->lval_->accept(this);
+    TType expected = TType(vType::tInt);
+    if (!(expected == lastType)) {
+        throwWrongType(incr->line_number, expected.toStr(), lastType.toStr(),
+                       "increment");
+    }
 }
 
 void TypeChecker::visitDecr(Decr *decr) {
     /* Code For Decr Goes Here */
-
+    // int only
     decr->lval_->accept(this);
+
+    TType expected = TType(vType::tInt);
+    if (!(expected == lastType)) {
+        throwWrongType(decr->line_number, expected.toStr(), lastType.toStr(),
+                       "decrement");
+    }
 }
 
 void TypeChecker::visitRet(Ret *ret) {
@@ -161,6 +210,12 @@ void TypeChecker::visitCond(Cond *cond) {
     /* Code For Cond Goes Here */
 
     cond->expr_->accept(this);
+    TType expected = TType(vType::tBool);
+    if (!(expected == lastType)) {
+        throwWrongType(cond->line_number, expected.toStr(), lastType.toStr(),
+                       "if");
+    }
+
     cond->stmt_->accept(this);
 }
 
@@ -168,6 +223,13 @@ void TypeChecker::visitCondElse(CondElse *condelse) {
     /* Code For CondElse Goes Here */
 
     condelse->expr_->accept(this);
+
+    TType expected = TType(vType::tBool);
+    if (!(expected == lastType)) {
+        throwWrongType(condelse->line_number, expected.toStr(), lastType.toStr(),
+                       "if else ");
+    }
+
     condelse->stmt_1->accept(this);
     condelse->stmt_2->accept(this);
 }
@@ -176,6 +238,11 @@ void TypeChecker::visitWhile(While *w) {
     /* Code For While Goes Here */
 
     w->expr_->accept(this);
+    TType expected = TType(vType::tBool);
+    if (!(expected == lastType)) {
+        throwWrongType(w->line_number, expected.toStr(), lastType.toStr(),
+                       "while");
+    }
     w->stmt_->accept(this);
 }
 
@@ -196,31 +263,36 @@ void TypeChecker::visitSExp(SExp *sexp) {
 
 void TypeChecker::visitNoInit(NoInit *noinit) {
     /* Code For NoInit Goes Here */
-
+    env->addVarToCurScope(noinit->ident_, lastType);
     visitIdent(noinit->ident_);
 }
 
 void TypeChecker::visitInit(Init *init) {
     /* Code For Init Goes Here */
 
+    env->addVarToCurScope(init->ident_, lastType);
     visitIdent(init->ident_);
     init->expr_->accept(this);
 }
 
 void TypeChecker::visitInt(Int *i) {
     /* Code For Int Goes Here */
+    lastType = TType(vType::tInt);
 }
 
 void TypeChecker::visitStr(Str *str) {
     /* Code For Str Goes Here */
+    lastType = TType(vType::tStr);
 }
 
 void TypeChecker::visitBool(Bool *b) {
     /* Code For Bool Goes Here */
+    lastType = TType(vType::tBool);
 }
 
 void TypeChecker::visitVoid(Void *v) {
     /* Code For Void Goes Here */
+    lastType = TType(vType::tVoid);
 }
 
 void TypeChecker::visitFun(Fun *fun) {
@@ -257,6 +329,9 @@ void TypeChecker::visitNormalType(NormalType *normaltype) {
 void TypeChecker::visitLvVar(LvVar *lvvar) {
     /* Code For LvVar Goes Here */
 
+    TType t = env->lookupVarType(lvvar->ident_);
+    assert(t.isAnything());
+    lastType = t;
     visitIdent(lvvar->ident_);
 }
 
@@ -324,22 +399,27 @@ void TypeChecker::visitENewCls(ENewCls *enewcls) {
 
 void TypeChecker::visitEVar(EVar *evar) {
     /* Code For EVar Goes Here */
-
+    // Set Type
+    TType t = env->lookupVarType(evar->ident_);
+    assert(t.isAnything());
+    lastType = t;
     visitIdent(evar->ident_);
 }
 
 void TypeChecker::visitELitInt(ELitInt *elitint) {
     /* Code For ELitInt Goes Here */
-
+    lastType = TType(vType::tInt);
     visitInteger(elitint->integer_);
 }
 
 void TypeChecker::visitELitTrue(ELitTrue *elittrue) {
     /* Code For ELitTrue Goes Here */
+    lastType = TType(vType::tBool);
 }
 
 void TypeChecker::visitELitFalse(ELitFalse *elitfalse) {
     /* Code For ELitFalse Goes Here */
+    lastType = TType(vType::tBool);
 }
 
 void TypeChecker::visitEApp(EApp *eapp) {
@@ -352,13 +432,15 @@ void TypeChecker::visitEApp(EApp *eapp) {
                             env->getArgsNum(eapp->ident_),
                             eapp->listexpr_->size());
 
+    // TODO: Check arguments types
+
     visitIdent(eapp->ident_);
     eapp->listexpr_->accept(this);
 }
 
 void TypeChecker::visitEString(EString *estring) {
     /* Code For EString Goes Here */
-
+    lastType = TType(vType::tStr);
     visitString(estring->string_);
 }
 
@@ -366,94 +448,176 @@ void TypeChecker::visitNeg(Neg *neg) {
     /* Code For Neg Goes Here */
 
     neg->expr_->accept(this);
+    if (!lastType.isInt())
+        throwWrongType(neg->line_number, TType(vType::tInt).toStr(),
+                       lastType.toStr(), "Negation");
 }
 
 void TypeChecker::visitNot(Not *n) {
     /* Code For Not Goes Here */
 
     n->expr_->accept(this);
+    if (!lastType.isBool())
+        throwWrongType(n->line_number, TType(vType::tBool).toStr(),
+                       lastType.toStr(), "Not");
 }
 
 void TypeChecker::visitEMul(EMul *emul) {
     /* Code For EMul Goes Here */
 
     emul->expr_1->accept(this);
+    TType first = lastType;
     emul->mulop_->accept(this);
     emul->expr_2->accept(this);
+    if (!first.isInt())
+        throwWrongType(emul->line_number, TType(vType::tInt).toStr(),
+                       first.toStr(), "Mul/Div/Mod");
+
+    if (!lastType.isInt())
+        throwWrongType(emul->line_number, TType(vType::tInt).toStr(),
+                       first.toStr(), "Mul/Div/Mod");
 }
 
 void TypeChecker::visitEAdd(EAdd *eadd) {
     /* Code For EAdd Goes Here */
 
     eadd->expr_1->accept(this);
+    TType first = lastType;
     eadd->addop_->accept(this);
+    TOp op = lastOp;
     eadd->expr_2->accept(this);
+
+    if (op.isPlus()) {
+        if (first.isString() || lastType.isString()) {
+            if (!first.isString() || !lastType.isString())
+                throwCannotConcatenate(eadd->line_number, first.toStr(),
+                                       lastType.toStr());
+            return;
+        }
+    }
+
+    if (!first.isInt())
+        throwWrongType(eadd->line_number, TType(vType::tInt).toStr(),
+                       first.toStr(), "Add/Sub");
+
+    if (!lastType.isInt())
+        throwWrongType(eadd->line_number, TType(vType::tInt).toStr(),
+                       first.toStr(), "Add/Sub");
 }
 
 void TypeChecker::visitERel(ERel *erel) {
     /* Code For ERel Goes Here */
 
     erel->expr_1->accept(this);
+    TType first = lastType;
     erel->relop_->accept(this);
     erel->expr_2->accept(this);
+
+    if (!(lastRelop.isEq() || lastRelop.isNeq())) {
+        // All other ops work only for ints
+        if (!first.isInt())
+            throwWrongType(erel->line_number, TType(vType::tInt).toStr(),
+                           first.toStr(), "Relation");
+
+        if (!lastType.isInt())
+            throwWrongType(erel->line_number, TType(vType::tInt).toStr(),
+                           first.toStr(), "Relation");
+    }
+    else {
+        //Eq or neq
+        if (!(first == lastType)) {
+            throwCustomError(erel->line_number,  "Both types should be the same in eq/neq relation.");
+        } 
+
+    }
+
+    lastType = TType(vType::tBool);
 }
 
 void TypeChecker::visitEAnd(EAnd *eand) {
     /* Code For EAnd Goes Here */
 
     eand->expr_1->accept(this);
+    TType first = lastType;
     eand->expr_2->accept(this);
+    if (!first.isBool())
+        throwWrongTypeLog(eand->line_number, TType(vType::tBool).toStr(),
+                          first.toStr());
+
+    if (!lastType.isBool())
+        throwWrongTypeLog(eand->line_number, TType(vType::tBool).toStr(),
+                          lastType.toStr());
 }
 
 void TypeChecker::visitEOr(EOr *eor) {
     /* Code For EOr Goes Here */
 
     eor->expr_1->accept(this);
+    TType first = lastType;
     eor->expr_2->accept(this);
+
+    if (!first.isBool())
+        throwWrongTypeLog(eor->line_number, TType(vType::tBool).toStr(),
+                          first.toStr());
+
+    if (!lastType.isBool())
+        throwWrongTypeLog(eor->line_number, TType(vType::tBool).toStr(),
+                          lastType.toStr());
 }
 
 void TypeChecker::visitPlus(Plus *plus) {
     /* Code For Plus Goes Here */
+    lastOp = TOp(vOp::oPlus);
 }
 
 void TypeChecker::visitMinus(Minus *minus) {
     /* Code For Minus Goes Here */
+    lastOp = TOp(vOp::oMinus);
 }
 
 void TypeChecker::visitTimes(Times *times) {
     /* Code For Times Goes Here */
+    lastOp = TOp(vOp::oMul);
 }
 
 void TypeChecker::visitDiv(Div *div) {
     /* Code For Div Goes Here */
+    lastOp = TOp(vOp::oDiv);
 }
 
 void TypeChecker::visitMod(Mod *mod) {
     /* Code For Mod Goes Here */
+    lastOp = TOp(vOp::oMod);
 }
 
 void TypeChecker::visitLTH(LTH *lth) {
     /* Code For LTH Goes Here */
+    lastRelop = TRelop(vRelop::oLt);
 }
 
 void TypeChecker::visitLE(LE *le) {
     /* Code For LE Goes Here */
+    lastRelop = TRelop(vRelop::oLe);
 }
 
 void TypeChecker::visitGTH(GTH *gth) {
     /* Code For GTH Goes Here */
+    lastRelop = TRelop(vRelop::oGt);
 }
 
 void TypeChecker::visitGE(GE *ge) {
     /* Code For GE Goes Here */
+    lastRelop = TRelop(vRelop::oGe);
 }
 
 void TypeChecker::visitEQU(EQU *equ) {
     /* Code For EQU Goes Here */
+    lastRelop = TRelop(vRelop::oEq);
 }
 
 void TypeChecker::visitNE(NE *ne) {
     /* Code For NE Goes Here */
+    lastRelop = TRelop(vRelop::oNeq);
 }
 
 void TypeChecker::visitListTopDef(ListTopDef *listtopdef) {

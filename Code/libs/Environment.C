@@ -39,7 +39,6 @@ void Env::addVarToCurScope(string s, TType t) {
 	assert(varsStack.size() > 0);
 	assert(varsStack.back().count(s) == 0);
 	varsStack.back()[s] = t;
-
 }
 
 bool Env::isDeclaredInCurScope(string s) {
@@ -57,6 +56,16 @@ bool Env::lookupVar(string s) {
 			return true;
 	}
 	return false;
+}
+
+
+TType Env::lookupVarType(string s) {
+	for(int i = varsStack.size() - 1; i >= 0; i--) {
+		if (varsStack[i].count(s))
+			return varsStack[i][s];
+	}
+
+	return vType::tNone;
 }
 
 void Env::printFunctions() {
