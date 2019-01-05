@@ -19,7 +19,7 @@ void throwFunctionUndeclared(string name, int line) {
 void throwWrongType(int line, string expected, string got, string what) {
     stringstream ss;
     ss << "Line " << line << ": wrong type of expression in " << what
-       << ", expected " << expected << " , received " << got << "\n";
+       << ", expected " << expected << ", received " << got << "\n";
     throw(ss.str());
 }
 
@@ -87,7 +87,7 @@ void TypeChecker::visitFnDef(FnDef *fndef) {
     visitIdent(fndef->ident_);
     fndef->listarg_->accept(this);
 
-    vector<pair<string, TType> > fargs = env->getArgs(fndef->ident_);
+    vector<pair<string, TType>> fargs = env->getArgs(fndef->ident_);
     env->beginBlock();  // Arguments vars
     for (int i = 0; i < fargs.size(); i++) {
         env->addVarToCurScope(fargs[i].first, fargs[i].second);
@@ -166,11 +166,10 @@ void TypeChecker::visitAss(Ass *ass) {
     TType lvalT = lastType;
     ass->expr_->accept(this);
 
-    if(!(lvalT == lastType)) {
+    if (!(lvalT == lastType)) {
         throwWrongType(ass->line_number, lvalT.toStr(), lastType.toStr(),
                        "assignment");
     }
-
 }
 
 void TypeChecker::visitIncr(Incr *incr) {
@@ -200,10 +199,19 @@ void TypeChecker::visitRet(Ret *ret) {
     /* Code For Ret Goes Here */
 
     ret->expr_->accept(this);
+    if (!(curFunType == lastType)) {
+        throwWrongType(ret->line_number, curFunType.toStr(), lastType.toStr(),
+                       "return");
+    }
 }
 
 void TypeChecker::visitVRet(VRet *vret) {
     /* Code For VRet Goes Here */
+    if (!curFunType.isVoid()) {
+        throwCustomError(
+            vret->line_number,
+            "function trying to return void, while its type is different");
+    }
 }
 
 void TypeChecker::visitCond(Cond *cond) {
@@ -226,8 +234,8 @@ void TypeChecker::visitCondElse(CondElse *condelse) {
 
     TType expected = TType(vType::tBool);
     if (!(expected == lastType)) {
-        throwWrongType(condelse->line_number, expected.toStr(), lastType.toStr(),
-                       "if else ");
+        throwWrongType(condelse->line_number, expected.toStr(),
+                       lastType.toStr(), "if else ");
     }
 
     condelse->stmt_1->accept(this);
@@ -522,13 +530,13 @@ void TypeChecker::visitERel(ERel *erel) {
         if (!lastType.isInt())
             throwWrongType(erel->line_number, TType(vType::tInt).toStr(),
                            first.toStr(), "Relation");
-    }
-    else {
-        //Eq or neq
+    } else {
+        // Eq or neq
         if (!(first == lastType)) {
-            throwCustomError(erel->line_number,  "Both types should be the same in eq/neq relation.");
-        } 
-
+            throwCustomError(
+                erel->line_number,
+                "Both types should be the same in eq/neq relation.");
+        }
     }
 
     lastType = TType(vType::tBool);
