@@ -37,6 +37,14 @@ void throwUseofUndeclaredVar(string name, int line) {
     throw(ss.str());
 }
 
+void throwSameNameArgs(int line, string name, string var) {
+    stringstream ss;
+    ss << "Line " << line << ": argument name \"" << var << "\" repeated in function \"" << name
+       << "\".\n";
+    throw(ss.str());
+}
+
+
 void BasicInfoCollector::visitProgram(Program *t) {}      // abstract class
 void BasicInfoCollector::visitTopDef(TopDef *t) {}        // abstract class
 void BasicInfoCollector::visitArg(Arg *t) {}              // abstract class
@@ -118,6 +126,8 @@ void BasicInfoCollector::visitFnDef(FnDef *fndef) {
 
     env->beginBlock();  // Arguments vars
     for (int i = 0; i < fargs.size(); i++) {
+        if(env->isDeclaredInCurScope(fargs[i].first)) 
+            throwSameNameArgs(fndef->line_number, fndef->ident_, fargs[i].first);
         env->addVarToCurScope(fargs[i].first, fargs[i].second);
     }
     fndef->block_->accept(this);
