@@ -288,8 +288,16 @@ void TypeChecker::visitInit(Init *init) {
     /* Code For Init Goes Here */
 
     env->addVarToCurScope(init->ident_, lastType);
+
+    TType declType = lastType; 
     visitIdent(init->ident_);
+
     init->expr_->accept(this);
+
+    if(!(declType == lastType)) {
+        throwWrongType(init->line_number, declType.toStr(), lastType.toStr(), "declaration");
+    }
+
 }
 
 void TypeChecker::visitInt(Int *i) {
