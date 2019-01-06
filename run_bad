@@ -1,0 +1,5 @@
+for f in ../lattests/bad/*.lat
+do
+	echo $f
+	./Code/Main $f
+done 
