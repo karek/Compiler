@@ -8,6 +8,9 @@
 class ReturnChecker : public Visitor {
    private:
     bool wasReturn;
+    bool wasTrue;
+    // int val;
+    bool wasConst;
     Env* env;
 
    public:

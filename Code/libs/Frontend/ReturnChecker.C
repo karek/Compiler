@@ -4,665 +4,616 @@
    List->accept() does NOT traverse the list. This allows different
    algorithms to use context information differently. */
 
-#include "ReturnChecker.H"
 #include <iostream>
-
+#include "ReturnChecker.H"
+#include <sstream>
 using namespace std;
 
 
+void throwFunctionNoRet(string name, int line) {
+    stringstream ss;
+    ss << "Line " << line << ": function \"" << name
+       << "\" can end without returning any value.\n";
+    throw(ss.str());
+}
 
-void ReturnChecker::visitProgram(Program* t) {} //abstract class
-void ReturnChecker::visitTopDef(TopDef* t) {} //abstract class
-void ReturnChecker::visitArg(Arg* t) {} //abstract class
-void ReturnChecker::visitClsElems(ClsElems* t) {} //abstract class
-void ReturnChecker::visitBlock(Block* t) {} //abstract class
-void ReturnChecker::visitStmt(Stmt* t) {} //abstract class
-void ReturnChecker::visitItem(Item* t) {} //abstract class
-void ReturnChecker::visitBasicType(BasicType* t) {} //abstract class
-void ReturnChecker::visitTypeName(TypeName* t) {} //abstract class
-void ReturnChecker::visitType(Type* t) {} //abstract class
-void ReturnChecker::visitLVal(LVal* t) {} //abstract class
-void ReturnChecker::visitExpr(Expr* t) {} //abstract class
-void ReturnChecker::visitAddOp(AddOp* t) {} //abstract class
-void ReturnChecker::visitMulOp(MulOp* t) {} //abstract class
-void ReturnChecker::visitRelOp(RelOp* t) {} //abstract class
- 
+void ReturnChecker::visitProgram(Program *t) {}      // abstract class
+void ReturnChecker::visitTopDef(TopDef *t) {}        // abstract class
+void ReturnChecker::visitArg(Arg *t) {}              // abstract class
+void ReturnChecker::visitClsElems(ClsElems *t) {}    // abstract class
+void ReturnChecker::visitBlock(Block *t) {}          // abstract class
+void ReturnChecker::visitStmt(Stmt *t) {}            // abstract class
+void ReturnChecker::visitItem(Item *t) {}            // abstract class
+void ReturnChecker::visitBasicType(BasicType *t) {}  // abstract class
+void ReturnChecker::visitTypeName(TypeName *t) {}    // abstract class
+void ReturnChecker::visitType(Type *t) {}            // abstract class
+void ReturnChecker::visitLVal(LVal *t) {}            // abstract class
+void ReturnChecker::visitExpr(Expr *t) {}            // abstract class
+void ReturnChecker::visitAddOp(AddOp *t) {}          // abstract class
+void ReturnChecker::visitMulOp(MulOp *t) {}          // abstract class
+void ReturnChecker::visitRelOp(RelOp *t) {}          // abstract class
 
-void ReturnChecker::checkReturns(Visitable* v, Env* e) {
+void ReturnChecker::checkReturns(Visitable *v, Env *e) {
     env = e;
     v->accept(this);
 }
- 
-void ReturnChecker::visitProg(Prog *prog)
-{
-  /* Code For Prog Goes Here */
 
-  prog->listtopdef_->accept(this);
+void ReturnChecker::visitProg(Prog *prog) {
+    /* Code For Prog Goes Here */
 
+    prog->listtopdef_->accept(this);
 }
 
-void ReturnChecker::visitFnDef(FnDef *fndef)
-{
-  /* Code For FnDef Goes Here */
+void ReturnChecker::visitFnDef(FnDef *fndef) {
+    /* Code For FnDef Goes Here */
 
-  fndef->type_->accept(this);
-  visitIdent(fndef->ident_);
-  fndef->listarg_->accept(this);
-  fndef->block_->accept(this);
+    fndef->type_->accept(this);
+    visitIdent(fndef->ident_);
+    fndef->listarg_->accept(this);
 
-}
+    if (env->getRetType(fndef->ident_).isVoid())
+        return;
 
-void ReturnChecker::visitClsDef(ClsDef *clsdef)
-{
-  /* Code For ClsDef Goes Here */
+    // isOksoFar = true;
+    wasReturn = false;
+    wasConst = false;
+    fndef->block_->accept(this);
 
-  visitIdent(clsdef->ident_);
-  clsdef->listclselems_->accept(this);
 
+    if (!wasReturn) 
+        throwFunctionNoRet(fndef->ident_, fndef->line_number);
 }
-
-void ReturnChecker::visitExtClsDef(ExtClsDef *extclsdef)
-{
-  /* Code For ExtClsDef Goes Here */
 
-  visitIdent(extclsdef->ident_1);
-  visitIdent(extclsdef->ident_2);
-  extclsdef->listclselems_->accept(this);
+void ReturnChecker::visitClsDef(ClsDef *clsdef) {
+    /* Code For ClsDef Goes Here */
 
+    visitIdent(clsdef->ident_);
+    clsdef->listclselems_->accept(this);
 }
 
-void ReturnChecker::visitAr(Ar *ar)
-{
-  /* Code For Ar Goes Here */
+void ReturnChecker::visitExtClsDef(ExtClsDef *extclsdef) {
+    /* Code For ExtClsDef Goes Here */
 
-  ar->type_->accept(this);
-  visitIdent(ar->ident_);
-
+    visitIdent(extclsdef->ident_1);
+    visitIdent(extclsdef->ident_2);
+    extclsdef->listclselems_->accept(this);
 }
-
-void ReturnChecker::visitClsMethod(ClsMethod *clsmethod)
-{
-  /* Code For ClsMethod Goes Here */
 
-  clsmethod->type_->accept(this);
-  visitIdent(clsmethod->ident_);
-  clsmethod->listarg_->accept(this);
-  clsmethod->block_->accept(this);
+void ReturnChecker::visitAr(Ar *ar) {
+    /* Code For Ar Goes Here */
 
+    ar->type_->accept(this);
+    visitIdent(ar->ident_);
 }
 
-void ReturnChecker::visitClsField(ClsField *clsfield)
-{
-  /* Code For ClsField Goes Here */
+void ReturnChecker::visitClsMethod(ClsMethod *clsmethod) {
+    /* Code For ClsMethod Goes Here */
 
-  clsfield->type_->accept(this);
-  visitIdent(clsfield->ident_);
-
+    clsmethod->type_->accept(this);
+    visitIdent(clsmethod->ident_);
+    clsmethod->listarg_->accept(this);
+    clsmethod->block_->accept(this);
 }
-
-void ReturnChecker::visitBlk(Blk *blk)
-{
-  /* Code For Blk Goes Here */
 
-  blk->liststmt_->accept(this);
+void ReturnChecker::visitClsField(ClsField *clsfield) {
+    /* Code For ClsField Goes Here */
 
+    clsfield->type_->accept(this);
+    visitIdent(clsfield->ident_);
 }
 
-void ReturnChecker::visitEmpty(Empty *empty)
-{
-  /* Code For Empty Goes Here */
+void ReturnChecker::visitBlk(Blk *blk) {
+    /* Code For Blk Goes Here */
 
-
+    blk->liststmt_->accept(this);
 }
-
-void ReturnChecker::visitBStmt(BStmt *bstmt)
-{
-  /* Code For BStmt Goes Here */
-
-  bstmt->block_->accept(this);
 
+void ReturnChecker::visitEmpty(Empty *empty) {
+    /* Code For Empty Goes Here */
 }
 
-void ReturnChecker::visitDecl(Decl *decl)
-{
-  /* Code For Decl Goes Here */
+void ReturnChecker::visitBStmt(BStmt *bstmt) {
+    /* Code For BStmt Goes Here */
 
-  decl->type_->accept(this);
-  decl->listitem_->accept(this);
-
+    bstmt->block_->accept(this);
 }
-
-void ReturnChecker::visitAss(Ass *ass)
-{
-  /* Code For Ass Goes Here */
 
-  ass->lval_->accept(this);
-  ass->expr_->accept(this);
+void ReturnChecker::visitDecl(Decl *decl) {
+    /* Code For Decl Goes Here */
 
+    decl->type_->accept(this);
+    decl->listitem_->accept(this);
 }
 
-void ReturnChecker::visitIncr(Incr *incr)
-{
-  /* Code For Incr Goes Here */
+void ReturnChecker::visitAss(Ass *ass) {
+    /* Code For Ass Goes Here */
 
-  incr->lval_->accept(this);
-
+    ass->lval_->accept(this);
+    ass->expr_->accept(this);
 }
 
-void ReturnChecker::visitDecr(Decr *decr)
-{
-  /* Code For Decr Goes Here */
+void ReturnChecker::visitIncr(Incr *incr) {
+    /* Code For Incr Goes Here */
 
-  decr->lval_->accept(this);
-
+    incr->lval_->accept(this);
 }
-
-void ReturnChecker::visitRet(Ret *ret)
-{
-  /* Code For Ret Goes Here */
 
-  ret->expr_->accept(this);
+void ReturnChecker::visitDecr(Decr *decr) {
+    /* Code For Decr Goes Here */
 
+    decr->lval_->accept(this);
 }
 
-void ReturnChecker::visitVRet(VRet *vret)
-{
-  /* Code For VRet Goes Here */
+void ReturnChecker::visitRet(Ret *ret) {
+    /* Code For Ret Goes Here */
 
-
+    wasReturn = true;
+    ret->expr_->accept(this);
 }
-
-void ReturnChecker::visitCond(Cond *cond)
-{
-  /* Code For Cond Goes Here */
 
-  cond->expr_->accept(this);
-  cond->stmt_->accept(this);
-
+void ReturnChecker::visitVRet(VRet *vret) {
+    /* Code For VRet Goes Here */
 }
-
-void ReturnChecker::visitCondElse(CondElse *condelse)
-{
-  /* Code For CondElse Goes Here */
-
-  condelse->expr_->accept(this);
-  condelse->stmt_1->accept(this);
-  condelse->stmt_2->accept(this);
 
-}
+void ReturnChecker::visitCond(Cond *cond) {
+    /* Code For Cond Goes Here */
+    bool isEvaledToTrue = false;
+    bool isEvaledToFalse = false;
+    bool wasRetinIf = false;
 
-void ReturnChecker::visitWhile(While *w)
-{
-  /* Code For While Goes Here */
+    cond->expr_->accept(this);
 
-  w->expr_->accept(this);
-  w->stmt_->accept(this);
+    // an if never gets visited
+    if (wasConst && !wasTrue)
+        return;
 
-}
+    bool tmp = wasReturn;
+    wasReturn = false;
+    cond->stmt_->accept(this);
 
-void ReturnChecker::visitFor(For *f)
-{
-  /* Code For For Goes Here */
 
-  f->type_->accept(this);
-  visitIdent(f->ident_1);
-  visitIdent(f->ident_2);
-  f->stmt_->accept(this);
+    wasRetinIf = wasReturn;
+    if (wasConst)
+        wasReturn |= tmp;
 
 }
 
-void ReturnChecker::visitSExp(SExp *sexp)
-{
-  /* Code For SExp Goes Here */
-
-  sexp->expr_->accept(this);
-
-}
+void ReturnChecker::visitCondElse(CondElse *condelse) {
+    /* Code For CondElse Goes Here */
 
-void ReturnChecker::visitNoInit(NoInit *noinit)
-{
-  /* Code For NoInit Goes Here */
+    bool isEvaledToTrue = false;
+    bool isEvaledToFalse = false;
+    bool wasRetinIf = false;
+    bool wasRetinElse = false;
 
-  visitIdent(noinit->ident_);
 
-}
+    condelse->expr_->accept(this);
 
-void ReturnChecker::visitInit(Init *init)
-{
-  /* Code For Init Goes Here */
+    if (wasConst && wasTrue)
+        isEvaledToTrue = true;
 
-  visitIdent(init->ident_);
-  init->expr_->accept(this);
+    if (wasConst && !wasTrue) 
+        isEvaledToFalse = true;
 
-}
 
-void ReturnChecker::visitInt(Int *i)
-{
-  /* Code For Int Goes Here */
+    bool tmp = wasReturn;
+    wasReturn = false;
 
+    condelse->stmt_1->accept(this);
 
-}
+    wasRetinIf = wasReturn;
+    wasReturn = false;
 
-void ReturnChecker::visitStr(Str *str)
-{
-  /* Code For Str Goes Here */
+    condelse->stmt_2->accept(this);
 
+    wasRetinElse = wasReturn;
 
+    wasReturn = tmp;
+    if (isEvaledToFalse)
+        wasReturn |= wasRetinElse;
+    if (isEvaledToTrue)
+        wasReturn |= wasRetinIf;
 }
 
-void ReturnChecker::visitBool(Bool *b)
-{
-  /* Code For Bool Goes Here */
+void ReturnChecker::visitWhile(While *w) {
+    /* Code For While Goes Here */
 
-
+    w->expr_->accept(this);
+    w->stmt_->accept(this);
 }
-
-void ReturnChecker::visitVoid(Void *v)
-{
-  /* Code For Void Goes Here */
 
+void ReturnChecker::visitFor(For *f) {
+    /* Code For For Goes Here */
 
+    f->type_->accept(this);
+    visitIdent(f->ident_1);
+    visitIdent(f->ident_2);
+    f->stmt_->accept(this);
 }
 
-void ReturnChecker::visitFun(Fun *fun)
-{
-  /* Code For Fun Goes Here */
+void ReturnChecker::visitSExp(SExp *sexp) {
+    /* Code For SExp Goes Here */
 
-  fun->type_->accept(this);
-  fun->listtype_->accept(this);
-
+    sexp->expr_->accept(this);
 }
-
-void ReturnChecker::visitBType(BType *btype)
-{
-  /* Code For BType Goes Here */
 
-  btype->basictype_->accept(this);
+void ReturnChecker::visitNoInit(NoInit *noinit) {
+    /* Code For NoInit Goes Here */
 
+    // visitIdent(noinit->ident_);
 }
 
-void ReturnChecker::visitClsType(ClsType *clstype)
-{
-  /* Code For ClsType Goes Here */
+void ReturnChecker::visitInit(Init *init) {
+    /* Code For Init Goes Here */
 
-  visitIdent(clstype->ident_);
-
+    // visitIdent(init->ident_);
+    // init->expr_->accept(this);
 }
-
-void ReturnChecker::visitArrayType(ArrayType *arraytype)
-{
-  /* Code For ArrayType Goes Here */
-
-  arraytype->typename_->accept(this);
 
+void ReturnChecker::visitInt(Int *i) {
+    /* Code For Int Goes Here */
 }
 
-void ReturnChecker::visitNormalType(NormalType *normaltype)
-{
-  /* Code For NormalType Goes Here */
-
-  normaltype->typename_->accept(this);
-
+void ReturnChecker::visitStr(Str *str) {
+    /* Code For Str Goes Here */
 }
 
-void ReturnChecker::visitLvVar(LvVar *lvvar)
-{
-  /* Code For LvVar Goes Here */
-
-  visitIdent(lvvar->ident_);
-
+void ReturnChecker::visitBool(Bool *b) {
+    /* Code For Bool Goes Here */
 }
 
-void ReturnChecker::visitLvTab(LvTab *lvtab)
-{
-  /* Code For LvTab Goes Here */
+void ReturnChecker::visitVoid(Void *v) {
+    /* Code For Void Goes Here */
+}
 
-  lvtab->expr_1->accept(this);
-  lvtab->expr_2->accept(this);
+void ReturnChecker::visitFun(Fun *fun) {
+    /* Code For Fun Goes Here */
 
+    fun->type_->accept(this);
+    fun->listtype_->accept(this);
 }
 
-void ReturnChecker::visitLvAttr(LvAttr *lvattr)
-{
-  /* Code For LvAttr Goes Here */
+void ReturnChecker::visitBType(BType *btype) {
+    /* Code For BType Goes Here */
 
-  lvattr->expr_->accept(this);
-  visitIdent(lvattr->ident_);
-
+    btype->basictype_->accept(this);
 }
-
-void ReturnChecker::visitEAttr(EAttr *eattr)
-{
-  /* Code For EAttr Goes Here */
 
-  eattr->expr_->accept(this);
-  visitIdent(eattr->ident_);
+void ReturnChecker::visitClsType(ClsType *clstype) {
+    /* Code For ClsType Goes Here */
 
+    visitIdent(clstype->ident_);
 }
 
-void ReturnChecker::visitEMetCall(EMetCall *emetcall)
-{
-  /* Code For EMetCall Goes Here */
+void ReturnChecker::visitArrayType(ArrayType *arraytype) {
+    /* Code For ArrayType Goes Here */
 
-  emetcall->expr_->accept(this);
-  visitIdent(emetcall->ident_);
-  emetcall->listexpr_->accept(this);
-
+    arraytype->typename_->accept(this);
 }
-
-void ReturnChecker::visitECastNull(ECastNull *ecastnull)
-{
-  /* Code For ECastNull Goes Here */
 
-  visitIdent(ecastnull->ident_);
+void ReturnChecker::visitNormalType(NormalType *normaltype) {
+    /* Code For NormalType Goes Here */
 
+    normaltype->typename_->accept(this);
 }
 
-void ReturnChecker::visitEAt(EAt *eat)
-{
-  /* Code For EAt Goes Here */
+void ReturnChecker::visitLvVar(LvVar *lvvar) {
+    /* Code For LvVar Goes Here */
 
-  eat->expr_1->accept(this);
-  eat->expr_2->accept(this);
-
+    visitIdent(lvvar->ident_);
 }
-
-void ReturnChecker::visitENewArr(ENewArr *enewarr)
-{
-  /* Code For ENewArr Goes Here */
 
-  enewarr->basictype_->accept(this);
-  enewarr->expr_->accept(this);
+void ReturnChecker::visitLvTab(LvTab *lvtab) {
+    /* Code For LvTab Goes Here */
 
+    lvtab->expr_1->accept(this);
+    lvtab->expr_2->accept(this);
 }
 
-void ReturnChecker::visitENewClArr(ENewClArr *enewclarr)
-{
-  /* Code For ENewClArr Goes Here */
+void ReturnChecker::visitLvAttr(LvAttr *lvattr) {
+    /* Code For LvAttr Goes Here */
 
-  visitIdent(enewclarr->ident_);
-  enewclarr->expr_->accept(this);
-
+    lvattr->expr_->accept(this);
+    visitIdent(lvattr->ident_);
 }
 
-void ReturnChecker::visitENewCls(ENewCls *enewcls)
-{
-  /* Code For ENewCls Goes Here */
+void ReturnChecker::visitEAttr(EAttr *eattr) {
+    /* Code For EAttr Goes Here */
 
-  visitIdent(enewcls->ident_);
-
+    eattr->expr_->accept(this);
+    visitIdent(eattr->ident_);
 }
-
-void ReturnChecker::visitEVar(EVar *evar)
-{
-  /* Code For EVar Goes Here */
 
-  visitIdent(evar->ident_);
+void ReturnChecker::visitEMetCall(EMetCall *emetcall) {
+    /* Code For EMetCall Goes Here */
 
+    emetcall->expr_->accept(this);
+    visitIdent(emetcall->ident_);
+    emetcall->listexpr_->accept(this);
 }
 
-void ReturnChecker::visitELitInt(ELitInt *elitint)
-{
-  /* Code For ELitInt Goes Here */
+void ReturnChecker::visitECastNull(ECastNull *ecastnull) {
+    /* Code For ECastNull Goes Here */
 
-  visitInteger(elitint->integer_);
-
+    visitIdent(ecastnull->ident_);
 }
-
-void ReturnChecker::visitELitTrue(ELitTrue *elittrue)
-{
-  /* Code For ELitTrue Goes Here */
 
+void ReturnChecker::visitEAt(EAt *eat) {
+    /* Code For EAt Goes Here */
 
+    eat->expr_1->accept(this);
+    eat->expr_2->accept(this);
 }
 
-void ReturnChecker::visitELitFalse(ELitFalse *elitfalse)
-{
-  /* Code For ELitFalse Goes Here */
+void ReturnChecker::visitENewArr(ENewArr *enewarr) {
+    /* Code For ENewArr Goes Here */
 
-
+    enewarr->basictype_->accept(this);
+    enewarr->expr_->accept(this);
 }
 
-void ReturnChecker::visitEApp(EApp *eapp)
-{
-  /* Code For EApp Goes Here */
+void ReturnChecker::visitENewClArr(ENewClArr *enewclarr) {
+    /* Code For ENewClArr Goes Here */
 
-  visitIdent(eapp->ident_);
-  eapp->listexpr_->accept(this);
-
+    visitIdent(enewclarr->ident_);
+    enewclarr->expr_->accept(this);
 }
-
-void ReturnChecker::visitEString(EString *estring)
-{
-  /* Code For EString Goes Here */
 
-  visitString(estring->string_);
+void ReturnChecker::visitENewCls(ENewCls *enewcls) {
+    /* Code For ENewCls Goes Here */
 
+    visitIdent(enewcls->ident_);
 }
 
-void ReturnChecker::visitNeg(Neg *neg)
-{
-  /* Code For Neg Goes Here */
+void ReturnChecker::visitEVar(EVar *evar) {
+    /* Code For EVar Goes Here */
+    wasConst = false;
+    wasTrue = false;
 
-  neg->expr_->accept(this);
-
+    visitIdent(evar->ident_);
 }
-
-void ReturnChecker::visitNot(Not *n)
-{
-  /* Code For Not Goes Here */
 
-  n->expr_->accept(this);
+void ReturnChecker::visitELitInt(ELitInt *elitint) {
+    /* Code For ELitInt Goes Here */
+    // val = elitInt->integer_;
+    wasConst = true;
+    wasTrue = false;
 
+    visitInteger(elitint->integer_);
 }
 
-void ReturnChecker::visitEMul(EMul *emul)
-{
-  /* Code For EMul Goes Here */
-
-  emul->expr_1->accept(this);
-  emul->mulop_->accept(this);
-  emul->expr_2->accept(this);
+void ReturnChecker::visitELitTrue(ELitTrue *elittrue) {
+    /* Code For ELitTrue Goes Here */
+    wasTrue = true;
+    wasConst = true;
+}
 
+void ReturnChecker::visitELitFalse(ELitFalse *elitfalse) {
+    /* Code For ELitFalse Goes Here */
+    wasTrue = false;
+    wasConst = true;
 }
 
-void ReturnChecker::visitEAdd(EAdd *eadd)
-{
-  /* Code For EAdd Goes Here */
+void ReturnChecker::visitEApp(EApp *eapp) {
+    /* Code For EApp Goes Here */
+    
+    visitIdent(eapp->ident_);
+    eapp->listexpr_->accept(this);
+}
 
-  eadd->expr_1->accept(this);
-  eadd->addop_->accept(this);
-  eadd->expr_2->accept(this);
+void ReturnChecker::visitEString(EString *estring) {
+    /* Code For EString Goes Here */
 
+    visitString(estring->string_);
 }
 
-void ReturnChecker::visitERel(ERel *erel)
-{
-  /* Code For ERel Goes Here */
+void ReturnChecker::visitNeg(Neg *neg) {
+    /* Code For Neg Goes Here */
 
-  erel->expr_1->accept(this);
-  erel->relop_->accept(this);
-  erel->expr_2->accept(this);
-
+    neg->expr_->accept(this);
+    // val = -val;
 }
-
-void ReturnChecker::visitEAnd(EAnd *eand)
-{
-  /* Code For EAnd Goes Here */
 
-  eand->expr_1->accept(this);
-  eand->expr_2->accept(this);
+void ReturnChecker::visitNot(Not *n) {
+    /* Code For Not Goes Here */
 
+    n->expr_->accept(this);
+    wasTrue = !(wasTrue);
 }
 
-void ReturnChecker::visitEOr(EOr *eor)
-{
-  /* Code For EOr Goes Here */
+void ReturnChecker::visitEMul(EMul *emul) {
+    /* Code For EMul Goes Here */
 
-  eor->expr_1->accept(this);
-  eor->expr_2->accept(this);
-
+    emul->expr_1->accept(this);
+    // bool f
+    emul->mulop_->accept(this);
+    emul->expr_2->accept(this);
 }
 
-void ReturnChecker::visitPlus(Plus *plus)
-{
-  /* Code For Plus Goes Here */
+void ReturnChecker::visitEAdd(EAdd *eadd) {
+    /* Code For EAdd Goes Here */
 
-
+    eadd->expr_1->accept(this);
+    eadd->addop_->accept(this);
+    eadd->expr_2->accept(this);
 }
-
-void ReturnChecker::visitMinus(Minus *minus)
-{
-  /* Code For Minus Goes Here */
 
+void ReturnChecker::visitERel(ERel *erel) {
+    /* Code For ERel Goes Here */
 
+    erel->expr_1->accept(this);
+    erel->relop_->accept(this);
+    erel->expr_2->accept(this);
 }
 
-void ReturnChecker::visitTimes(Times *times)
-{
-  /* Code For Times Goes Here */
+void ReturnChecker::visitEAnd(EAnd *eand) {
+    /* Code For EAnd Goes Here */
+    wasTrue = false;
+    wasConst = false;
+    eand->expr_1->accept(this);
+    bool tmp = wasTrue;
+    wasTrue = false;
+    if(!wasConst) 
+        return;
+    wasConst = false;
+    eand->expr_2->accept(this);
 
+    if(!wasConst) 
+        return;
 
-}
-
-void ReturnChecker::visitDiv(Div *div)
-{
-  /* Code For Div Goes Here */
+    wasTrue = wasTrue && tmp;
 
 
 }
 
-void ReturnChecker::visitMod(Mod *mod)
-{
-  /* Code For Mod Goes Here */
+void ReturnChecker::visitEOr(EOr *eor) {
+    /* Code For EOr Goes Here */
+    wasTrue = false;
+    wasConst = false;
+    bool wasConst1 = false;
 
+    eor->expr_1->accept(this);
 
-}
+    bool wasTrue1 = wasTrue;
+    wasTrue = false;
 
-void ReturnChecker::visitLTH(LTH *lth)
-{
-  /* Code For LTH Goes Here */
 
+    wasConst1 = wasConst; 
+    wasConst = false;
 
-}
 
-void ReturnChecker::visitLE(LE *le)
-{
-  /* Code For LE Goes Here */
+    eor->expr_2->accept(this);
 
+    bool wasTrue2 = wasTrue;
+    bool wasConst2 = wasConst;
 
-}
+    wasTrue = false;
 
-void ReturnChecker::visitGTH(GTH *gth)
-{
-  /* Code For GTH Goes Here */
+    if (wasConst1) {
+        wasTrue |= wasTrue1;
+    // If it was const false and other expr was not const,
+    // than the whole expr shouldnt be evaluated as const.
+        if (wasTrue1) 
+            wasConst = true;
+    }
 
+    if (wasConst2) {
+        wasTrue |= wasTrue2;
 
-}
+        if (wasTrue2)
+            wasConst = true;
+    }
 
-void ReturnChecker::visitGE(GE *ge)
-{
-  /* Code For GE Goes Here */
+    if (wasConst1 && wasConst2)
+        wasConst = true;
 
 
 }
 
-void ReturnChecker::visitEQU(EQU *equ)
-{
-  /* Code For EQU Goes Here */
+void ReturnChecker::visitPlus(Plus *plus) {
+    /* Code For Plus Goes Here */
+}
 
+void ReturnChecker::visitMinus(Minus *minus) {
+    /* Code For Minus Goes Here */
+}
 
+void ReturnChecker::visitTimes(Times *times) {
+    /* Code For Times Goes Here */
 }
 
-void ReturnChecker::visitNE(NE *ne)
-{
-  /* Code For NE Goes Here */
+void ReturnChecker::visitDiv(Div *div) {
+    /* Code For Div Goes Here */
+}
 
+void ReturnChecker::visitMod(Mod *mod) {
+    /* Code For Mod Goes Here */
+}
 
+void ReturnChecker::visitLTH(LTH *lth) {
+    /* Code For LTH Goes Here */
 }
 
+void ReturnChecker::visitLE(LE *le) {
+    /* Code For LE Goes Here */
+}
 
-void ReturnChecker::visitListTopDef(ListTopDef* listtopdef)
-{
-  for (ListTopDef::iterator i = listtopdef->begin() ; i != listtopdef->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+void ReturnChecker::visitGTH(GTH *gth) {
+    /* Code For GTH Goes Here */
 }
 
-void ReturnChecker::visitListArg(ListArg* listarg)
-{
-  for (ListArg::iterator i = listarg->begin() ; i != listarg->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+void ReturnChecker::visitGE(GE *ge) {
+    /* Code For GE Goes Here */
 }
 
-void ReturnChecker::visitListClsElems(ListClsElems* listclselems)
-{
-  for (ListClsElems::iterator i = listclselems->begin() ; i != listclselems->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+void ReturnChecker::visitEQU(EQU *equ) {
+    /* Code For EQU Goes Here */
 }
 
-void ReturnChecker::visitListStmt(ListStmt* liststmt)
-{
-  for (ListStmt::iterator i = liststmt->begin() ; i != liststmt->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+void ReturnChecker::visitNE(NE *ne) {
+    /* Code For NE Goes Here */
 }
 
-void ReturnChecker::visitListItem(ListItem* listitem)
-{
-  for (ListItem::iterator i = listitem->begin() ; i != listitem->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+void ReturnChecker::visitListTopDef(ListTopDef *listtopdef) {
+    for (ListTopDef::iterator i = listtopdef->begin(); i != listtopdef->end();
+         ++i) {
+        (*i)->accept(this);
+    }
 }
 
-void ReturnChecker::visitListType(ListType* listtype)
-{
-  for (ListType::iterator i = listtype->begin() ; i != listtype->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+void ReturnChecker::visitListArg(ListArg *listarg) {
+    for (ListArg::iterator i = listarg->begin(); i != listarg->end(); ++i) {
+        (*i)->accept(this);
+    }
 }
 
-void ReturnChecker::visitListExpr(ListExpr* listexpr)
-{
-  for (ListExpr::iterator i = listexpr->begin() ; i != listexpr->end() ; ++i)
-  {
-    (*i)->accept(this);
-  }
+void ReturnChecker::visitListClsElems(ListClsElems *listclselems) {
+    for (ListClsElems::iterator i = listclselems->begin();
+         i != listclselems->end(); ++i) {
+        (*i)->accept(this);
+    }
 }
 
+void ReturnChecker::visitListStmt(ListStmt *liststmt) {
+    for (ListStmt::iterator i = liststmt->begin(); i != liststmt->end(); ++i) {
+        (*i)->accept(this);
+    }
+}
 
-void ReturnChecker::visitInteger(Integer x)
-{
-  /* Code for Integer Goes Here */
+void ReturnChecker::visitListItem(ListItem *listitem) {
+    for (ListItem::iterator i = listitem->begin(); i != listitem->end(); ++i) {
+        (*i)->accept(this);
+    }
 }
 
-void ReturnChecker::visitChar(Char x)
-{
-  /* Code for Char Goes Here */
+void ReturnChecker::visitListType(ListType *listtype) {
+    for (ListType::iterator i = listtype->begin(); i != listtype->end(); ++i) {
+        (*i)->accept(this);
+    }
 }
 
-void ReturnChecker::visitDouble(Double x)
-{
-  /* Code for Double Goes Here */
+void ReturnChecker::visitListExpr(ListExpr *listexpr) {
+    for (ListExpr::iterator i = listexpr->begin(); i != listexpr->end(); ++i) {
+        (*i)->accept(this);
+    }
 }
 
-void ReturnChecker::visitString(String x)
-{
-  /* Code for String Goes Here */
+void ReturnChecker::visitInteger(Integer x) {
+    /* Code for Integer Goes Here */
 }
 
-void ReturnChecker::visitIdent(Ident x)
-{
-  /* Code for Ident Goes Here */
+void ReturnChecker::visitChar(Char x) {
+    /* Code for Char Goes Here */
 }
 
+void ReturnChecker::visitDouble(Double x) {
+    /* Code for Double Goes Here */
+}
 
+void ReturnChecker::visitString(String x) {
+    /* Code for String Goes Here */
+}
 
+void ReturnChecker::visitIdent(Ident x) {
+    /* Code for Ident Goes Here */
+}
