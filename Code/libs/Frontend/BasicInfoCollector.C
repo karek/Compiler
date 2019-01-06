@@ -176,9 +176,9 @@ void BasicInfoCollector::visitClsField(ClsField *clsfield) {
 
 void BasicInfoCollector::visitBlk(Blk *blk) {
     /* Code For Blk Goes Here */
-    env->beginBlock();
+    
     blk->liststmt_->accept(this);
-    env->endBlock();
+    
 }
 
 void BasicInfoCollector::visitEmpty(Empty *empty) {
@@ -187,8 +187,9 @@ void BasicInfoCollector::visitEmpty(Empty *empty) {
 
 void BasicInfoCollector::visitBStmt(BStmt *bstmt) {
     /* Code For BStmt Goes Here */
-
+    env->beginBlock();
     bstmt->block_->accept(this);
+    env->endBlock();
 }
 
 void BasicInfoCollector::visitDecl(Decl *decl) {
