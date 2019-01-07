@@ -4,19 +4,19 @@
 using namespace std;
 
 
-void Analyzer::analyze(Visitable* v) {
+void Analyzer::analyze(Visitable* v, Env* e) {
 //TODO: COmment this out
 	cerr << "Analyzing...\n\n";
-	Env e;
+	
 	BasicInfoCollector b;
-	b.collect(v, &e);
+	b.collect(v, e);
 //TODO: COmment this out
-	e.printFunctions();
+	e->printFunctions();
 
 	TypeChecker tc;
-	tc.checkTypes(v, &e);
+	tc.checkTypes(v, e);
 
 	ReturnChecker rc;
-	rc.checkReturns(v, &e);
+	rc.checkReturns(v, e);
 
 }

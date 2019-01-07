@@ -25,7 +25,8 @@ distclean: clean
 	rm -f Absyn.C Absyn.H Test.C Parser.C Parser.H Lexer.C Skeleton.C Skeleton.H Printer.C Printer.H LatteCPP.l LatteCPP.y LatteCPP.tex 
 
 Main.o: Main.C libs/Parser.H libs/Printer.H libs/Absyn.H \
-	 libs/Frontend/Analyzer.H libs/Frontend/BasicInfoCollector.H libs/Frontend/TypeChecker.H libs/Frontend/ReturnChecker.H
+	 libs/Frontend/Analyzer.H libs/Frontend/BasicInfoCollector.H libs/Frontend/TypeChecker.H libs/Frontend/ReturnChecker.H \
+	 libs/Environment.H
 	${CC} ${CCFLAGS} -c Main.C
 
 Main: ${OBJS} Main.o

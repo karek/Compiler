@@ -8,6 +8,7 @@
 #include "libs/Parser.H"
 #include "libs/Printer.H"
 #include "libs/Frontend/Analyzer.H"
+#include "libs/Environment.H"
 // #include "Compiler.H"
 
 using namespace std;
@@ -29,8 +30,9 @@ int main(int argc, char **argv) {
     Program *parse_tree = pProgram(input);
     if (parse_tree) {
         Analyzer a;
+        Env env;
         try {
-            a.analyze(parse_tree);
+            a.analyze(parse_tree, &env);
         } catch (string s) {
             cerr << "ERROR\n";
             cerr << CODE_BOLD << CODE_WRONG << "Error: " << CODE_END << s << "\n";

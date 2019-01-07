@@ -18,7 +18,7 @@ using std::pair;
 
 class Analyzer {
 public:
-	void analyze(Visitable* v);
+	void analyze(Visitable* v, Env* e);
 
 
 };
