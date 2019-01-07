@@ -113,6 +113,7 @@ void BasicInfoCollector::visitFnDef(FnDef *fndef) {
     fndef->type_->accept(this);
     TType retT = lastType;
 
+    curFun = fndef->ident_;
     visitIdent(fndef->ident_);
 
     fargs.clear();
@@ -196,6 +197,9 @@ void BasicInfoCollector::visitDecl(Decl *decl) {
     /* Code For Decl Goes Here */
 
     decl->type_->accept(this);
+
+    env->addLocalsCnt(curFun, decl->listitem_->size());
+
     decl->listitem_->accept(this);
 }
 

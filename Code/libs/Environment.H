@@ -20,6 +20,8 @@ public:
 	TType getRetType(string name);
 	vector<pair<string, TType> > getArgs(string name);
 	int getArgsNum(string name);
+	void addLocalsCnt(string name, int x);
+	int getLocalsCnt(string name);
 
 	void beginBlock();
 	void endBlock();
@@ -33,7 +35,7 @@ public:
 
 private:
 	map<string, pair<TType, vector<pair<string, TType>>>> functionsMap;
-
+	map<string, int> funcLocalCounts;
 	vector<map<string, TType> > varsStack;
 
 

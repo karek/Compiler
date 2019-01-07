@@ -35,6 +35,17 @@ void Env::endBlock() {
 	varsStack.pop_back();
 }
 
+void Env::addLocalsCnt(string name, int x) {
+	if(!funcLocalCounts.count(name))
+		funcLocalCounts[name] = x;
+	else
+		funcLocalCounts[name] += x;
+}
+
+int Env::getLocalsCnt(string name) {
+	return funcLocalCounts[name];
+}
+
 void Env::addVarToCurScope(string s, TType t) {
 	assert(varsStack.size() > 0);
 	assert(varsStack.back().count(s) == 0);
@@ -76,7 +87,7 @@ void Env::printFunctions() {
 		for(auto it2: it->second.second) {
 			cerr << it2.second.toStr() << " " << it2.first << ", ";
 		}
-		cerr << ")\n";
+		cerr << ")  -> locals cnt = " << getLocalsCnt(it->first) << "\n";
 	}
 
 }

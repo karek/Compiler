@@ -17,6 +17,7 @@ private:
   Env* env;
   TType lastType;
   vector<pair<string, TType> > fargs;
+  string curFun;
 
 public:
   void collect(Visitable* v, Env* e);
