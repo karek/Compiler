@@ -9,7 +9,7 @@
 #include "libs/Printer.H"
 #include "libs/Frontend/Analyzer.H"
 #include "libs/Environment.H"
-// #include "Compiler.H"
+#include "libs/Backend/Compiler.H"
 
 using namespace std;
 const string CODE_BOLD ="\e[1m";
@@ -40,8 +40,8 @@ int main(int argc, char **argv) {
         }
 
         cerr << "OK\n";
-        // Compiler comp;
-        // comp.compile(parse_tree, sa);
+        Compiler comp;
+        comp.compile(parse_tree, &env);
         // comp.debugPrintProgram();
         // comp.printProgramToFile("a.s");
 

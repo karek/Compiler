@@ -10,7 +10,8 @@ BISON_OPTS = -t -pLatteCPP
 
 OBJS = libs/Absyn.o libs/Lexer.o libs/Parser.o libs/Printer.o \
 		libs/Frontend/Analyzer.o libs/Frontend/BasicInfoCollector.o libs/Environment.o \
-		libs/Frontend/TypeChecker.o libs/Frontend/ReturnChecker.o
+		libs/Frontend/TypeChecker.o libs/Frontend/ReturnChecker.o \
+		libs/Backend/Compiler.o libs/Backend/CodeCreator.o
 #Compiler.o
 
 .PHONY: clean distclean
@@ -26,7 +27,7 @@ distclean: clean
 
 Main.o: Main.C libs/Parser.H libs/Printer.H libs/Absyn.H \
 	 libs/Frontend/Analyzer.H libs/Frontend/BasicInfoCollector.H libs/Frontend/TypeChecker.H libs/Frontend/ReturnChecker.H \
-	 libs/Environment.H
+	 libs/Environment.H libs/Backend/Compiler.H libs/Backend/CodeCreator.H
 	${CC} ${CCFLAGS} -c Main.C
 
 Main: ${OBJS} Main.o
