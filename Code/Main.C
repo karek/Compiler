@@ -7,8 +7,6 @@
 #include "libs/Absyn.H"
 #include "libs/Parser.H"
 #include "libs/Printer.H"
-// #include "SemanticAnalyzer.H"
-// #include "BasicInfoCollector.H"
 #include "libs/Frontend/Analyzer.H"
 // #include "Compiler.H"
 
@@ -34,10 +32,12 @@ int main(int argc, char **argv) {
         try {
             a.analyze(parse_tree);
         } catch (string s) {
+            cerr << "ERROR\n";
             cerr << CODE_BOLD << CODE_WRONG << "Error: " << CODE_END << s << "\n";
             return 1;
         }
 
+        cerr << "OK\n";
         // Compiler comp;
         // comp.compile(parse_tree, sa);
         // comp.debugPrintProgram();
