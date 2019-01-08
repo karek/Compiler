@@ -9,7 +9,7 @@ void Compiler::compile(Visitable* v, Env* e) {
 	cerr << "Compiling...\n\n";
 	
 	CodeCreator cc;
-	cc.create(v);
+	cc.create(v, e);
 // 	BasicInfoCollector b;
 // 	b.collect(v, e);
 // //TODO: COmment this out

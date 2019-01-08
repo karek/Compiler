@@ -1,14 +1,14 @@
 #ifndef CODECREATOR_HEADER
-#define CODECREATORR_HEADER
+#define CODECREATOR_HEADER
 /* You might want to change the above name. */
 
 #include "../Absyn.H"
-
+#include "../Environment.H"
 
 class CodeCreator : public Visitor
 {
 public:
-  void create(Visitable* v);
+  void create(Visitable* v, Env* e);
 
   void visitProgram(Program* p);
   void visitTopDef(TopDef* p);
