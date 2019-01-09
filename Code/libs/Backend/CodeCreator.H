@@ -4,6 +4,7 @@
 
 #include "../Absyn.H"
 #include "../Environment.H"
+#include "Instructions.H"
 
 class CodeCreator : public Visitor
 {

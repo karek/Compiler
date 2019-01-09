@@ -8,7 +8,7 @@ FLEX_OPTS = -PLatteCPP
 BISON = bison
 BISON_OPTS = -t -pLatteCPP
 
-OBJS = CodeCreator.o Compiler.o
+OBJS = CodeCreator.o Compiler.o Instructions.o
 #Compiler.o
 
 .PHONY: clean distclean
@@ -28,6 +28,6 @@ CodeCreator.o: CodeCreator.C CodeCreator.H ../Absyn.H
 Compiler.o: Compiler.C Compiler.H ../Absyn.H
 	${CC} ${CCFLAGS} -c Compiler.C
 
-TypeChecker.o: TypeChecker.C TypeChecker.H ../Absyn.H
-	${CC} ${CCFLAGS} -c TypeChecker.C
+Instructions.o: Instructions.C Instructions.H ../Absyn.H
+	${CC} ${CCFLAGS} -c Instructions.C
 

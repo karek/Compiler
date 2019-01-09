@@ -30,6 +30,8 @@ void CodeCreator::visitRelOp(RelOp* t) {} //abstract class
 
 void CodeCreator::create(Visitable* v, Env* e) {
     cerr << "TUBLEm\n";
+    Instruction *i = new Mov();
+    cerr << i->toStr() << "\n";
 }
 
 void CodeCreator::visitProg(Prog *prog)
