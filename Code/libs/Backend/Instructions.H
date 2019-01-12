@@ -5,97 +5,151 @@
 
 using std::string;
 
-class Instruction {
-public:
-	string op;
-	virtual string toStr() = 0;
+// First three don't need to be saved
+enum class Reg {EAX, ECX, EDX, ESP, EBP, ESI, EDI, EBX};
 
+string toStr(Reg r);
+
+
+class Instruction {
+   public:
+    string op;
+    virtual string toStr() = 0;
 };
 
 class OneArgInstr : public Instruction {
-
-public: 
-	string arg;
-	virtual string toStr() = 0;
+   public:
+    string arg;
+    virtual string toStr() {
+    	return op + " " + arg + "\n";
+    };
 };
 
 class BinArgInstr : public Instruction {
-
-public: 
-	string arg1, arg2;
-	virtual string toStr() = 0;
+   public:
+    BinArgInstr() {}
+    string arg1, arg2;
+    virtual string toStr() {
+        return op + " " + arg1 + ", " + arg2 + "\n";
+    };
 };
 
-
 class Mov : public BinArgInstr {
+   public:
+    Mov(string arg1_, string arg2_) : BinArgInstr() {
+        op = "movl";
+        arg1 = (arg1_);
+        arg2 = (arg2_);
+    }
 
-public:
-
-	string toStr();
+    // string toStr()  {return op;}
 };
 
 class Add : public BinArgInstr {
-
-public:
-
-	string toStr();
+   public:
+    Add(string arg1_, string arg2_) : BinArgInstr() {
+        op = "add";
+        arg1 = (arg1_);
+        arg2 = (arg2_);
+    }
 };
 
 class Sub : public BinArgInstr {
-
-public:
-
-	string toStr();
+   public:
+    Sub(string arg1_, string arg2_) : BinArgInstr() {
+        op = "sub";
+        arg1 = (arg1_);
+        arg2 = (arg2_);
+    }
 };
 
 class IMul : public BinArgInstr {
-
-public:
-
-	string toStr();
+   public:
+   IMul(string arg1_, string arg2_) :
+		BinArgInstr() {
+			op = "imul";
+			arg1 = (arg1_);
+			arg2 = (arg2_); 
+		}
 };
 
 class IDiv : public BinArgInstr {
-
-public:
-
-	string toStr();
+   public:
+   	IDiv(string arg1_, string arg2_) :
+		BinArgInstr() {
+			op = "idiv";
+			arg1 = (arg1_);
+			arg2 = (arg2_); 
+		}
 };
 
-class Lea : public BinArgInstr {
-
+class Cdq : public Instruction {
 public:
+	Cdq() :
+		Instruction() {
+			op = "cdq";
+	}
 
-	string toStr();
+	string toStr() {
+		return op + "\n";
+	}
+};
+
+
+class Lea : public BinArgInstr {
+   public:
+    string toStr();
 };
 
 class Push : public OneArgInstr {
-
-public:
-
-	string toStr();
+   public:
+   Push(string arg_) :
+		OneArgInstr() {
+			op = "push";
+			arg = arg_;
+	}
 };
 
 class Pop : public OneArgInstr {
-
-public:
-
-	string toStr();
+   public:
+   Pop(string arg_) :
+		OneArgInstr() {
+			op = "pop";
+			arg = arg_;
+	}
 };
 
 class Call : public OneArgInstr {
-
-public:
-
-	string toStr();
+   public:
+   Call(string arg_) :
+		OneArgInstr() {
+			op = "call";
+			arg = arg_;
+	}
 };
-
 
 class RetC : public Instruction {
+   public:
+   RetC(string arg_) :
+		Instruction() {
+			op = "ret";
+	}
 
-public:
-
-	string toStr();
+	string toStr() {
+		return op + "\n";
+	}
 };
 
+
+class Inc : public OneArgInstr {
+   public:
+   Inc(string arg_) :
+		OneArgInstr() {
+			op = "inc";
+			arg = arg_;
+	}
+};
+
+
+//TODO JUMPs
 #endif

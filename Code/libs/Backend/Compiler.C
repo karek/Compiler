@@ -1,24 +1,23 @@
-#include "Compiler.H"
 #include <iostream>
+#include "Compiler.H"
 
 using namespace std;
 
-
 void Compiler::compile(Visitable* v, Env* e) {
-//TODO: COmment this out
-	cerr << "Compiling...\n\n";
-	
-	CodeCreator cc;
-	cc.create(v, e);
-// 	BasicInfoCollector b;
-// 	b.collect(v, e);
-// //TODO: COmment this out
-// 	e->printFunctions();
+    // TODO: COmment this out
+    cerr << "Compiling...\n\n";
 
-// 	TypeChecker tc;
-// 	tc.checkTypes(v, e);
+    CodeCreator cc;
+    cc.create(v, e);
+    cc.printAllInstrs();
+    // 	BasicInfoCollector b;
+    // 	b.collect(v, e);
+    // //TODO: COmment this out
+    // 	e->printFunctions();
 
-// 	ReturnChecker rc;
-// 	rc.checkReturns(v, e);
+    // 	TypeChecker tc;
+    // 	tc.checkTypes(v, e);
 
+    // 	ReturnChecker rc;
+    // 	rc.checkReturns(v, e);
 }
