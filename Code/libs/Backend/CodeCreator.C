@@ -5,6 +5,7 @@
    algorithms to use context information differently. */
 
 #include <iostream>
+#include <sstream>
 #include "CodeCreator.H"
 
 using namespace std;
@@ -26,7 +27,6 @@ void CodeCreator::visitMulOp(MulOp *t) {}          // abstract class
 void CodeCreator::visitRelOp(RelOp *t) {}          // abstract class
 
 void CodeCreator::create(Visitable *v, Env *e) {
-
     v->accept(this);
     cerr << "TUBLEm\n";
 }
@@ -138,12 +138,21 @@ void CodeCreator::visitDecr(Decr *decr) {
 
 void CodeCreator::visitRet(Ret *ret) {
     /* Code For Ret Goes Here */
+    //Todo: Strings?
+    //Todo: take off locals?
 
     ret->expr_->accept(this);
+    i = new Pop(toStr(Reg::EAX));
+    emit(i);
+    i = new RetC();
+    emit(i);
 }
 
 void CodeCreator::visitVRet(VRet *vret) {
     /* Code For VRet Goes Here */
+    //Todo: take off locals?
+    i = new RetC();
+    emit(i);
 }
 
 void CodeCreator::visitCond(Cond *cond) {
@@ -319,16 +328,25 @@ void CodeCreator::visitEVar(EVar *evar) {
 
 void CodeCreator::visitELitInt(ELitInt *elitint) {
     /* Code For ELitInt Goes Here */
+    stringstream ss;
+
+    ss << elitint->integer_;
+    i = new Push(ss.str());
+    emit(i);
 
     visitInteger(elitint->integer_);
 }
 
 void CodeCreator::visitELitTrue(ELitTrue *elittrue) {
     /* Code For ELitTrue Goes Here */
+    i = new Push("1");
+    emit(i);
 }
 
 void CodeCreator::visitELitFalse(ELitFalse *elitfalse) {
     /* Code For ELitFalse Goes Here */
+    i = new Push("0");
+    emit(i);
 }
 
 void CodeCreator::visitEApp(EApp *eapp) {
@@ -360,8 +378,13 @@ void CodeCreator::visitEMul(EMul *emul) {
     /* Code For EMul Goes Here */
 
     emul->expr_1->accept(this);
-    emul->mulop_->accept(this);
     emul->expr_2->accept(this);
+
+    i = new Pop(toStr(Reg::ECX));  // Second res
+    emit(i);
+    i = new Pop(toStr(Reg::EAX));  // First res
+    emit(i);
+    emul->mulop_->accept(this);
 }
 
 void CodeCreator::visitEAdd(EAdd *eadd) {
@@ -370,10 +393,9 @@ void CodeCreator::visitEAdd(EAdd *eadd) {
     eadd->expr_1->accept(this);
     eadd->expr_2->accept(this);
 
-    
-    i = new Pop(toStr(Reg::ECX)); // Second res
+    i = new Pop(toStr(Reg::ECX));  // Second res
     emit(i);
-    i = new Pop(toStr(Reg::EAX)); // First res
+    i = new Pop(toStr(Reg::EAX));  // First res
     emit(i);
 
     eadd->addop_->accept(this);
@@ -403,6 +425,7 @@ void CodeCreator::visitEOr(EOr *eor) {
 
 void CodeCreator::visitPlus(Plus *plus) {
     /* Code For Plus Goes Here */
+    //TODO: STRINGS
     i = new Add(toStr(Reg::ECX), toStr(Reg::EAX));
     emit(i);
     i = new Push(toStr(Reg::EAX));
@@ -419,14 +442,30 @@ void CodeCreator::visitMinus(Minus *minus) {
 
 void CodeCreator::visitTimes(Times *times) {
     /* Code For Times Goes Here */
+    i = new IMul(toStr(Reg::ECX), toStr(Reg::EAX));
+    emit(i);
+    i = new Push(toStr(Reg::EAX));
+    emit(i);
 }
 
 void CodeCreator::visitDiv(Div *div) {
     /* Code For Div Goes Here */
+    i = new Cdq();
+    emit(i);
+    i = new IDiv(toStr(Reg::ECX));
+    emit(i);
+    i = new Push(toStr(Reg::EAX));
+    emit(i);
 }
 
 void CodeCreator::visitMod(Mod *mod) {
     /* Code For Mod Goes Here */
+    i = new Cdq();
+    emit(i);
+    i = new IDiv(toStr(Reg::ECX));
+    emit(i);
+    i = new Push(toStr(Reg::EDX));
+    emit(i);
 }
 
 void CodeCreator::visitLTH(LTH *lth) {

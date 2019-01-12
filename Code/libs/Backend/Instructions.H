@@ -73,13 +73,12 @@ class IMul : public BinArgInstr {
 		}
 };
 
-class IDiv : public BinArgInstr {
+class IDiv : public OneArgInstr {
    public:
-   	IDiv(string arg1_, string arg2_) :
-		BinArgInstr() {
+   	IDiv(string arg1_) :
+		OneArgInstr() {
 			op = "idiv";
-			arg1 = (arg1_);
-			arg2 = (arg2_); 
+			arg = (arg1_);
 		}
 };
 
@@ -130,7 +129,7 @@ class Call : public OneArgInstr {
 
 class RetC : public Instruction {
    public:
-   RetC(string arg_) :
+   RetC() :
 		Instruction() {
 			op = "ret";
 	}
