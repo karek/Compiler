@@ -33,6 +33,8 @@ void CodeCreator::create(Visitable *v, Env *e) {
 
 void CodeCreator::printAllInstrs() {
     for (int i = 0; i < instructions.size(); i++) {
+        if (!instructions[i]->isLabel())
+            cerr << "\t";
         cerr << instructions[i]->toStr();
     }
 }
@@ -50,6 +52,8 @@ void CodeCreator::visitProg(Prog *prog) {
 void CodeCreator::visitFnDef(FnDef *fndef) {
     /* Code For FnDef Goes Here */
 
+    i = new Label(fndef->ident_);
+    emit(i);
     fndef->type_->accept(this);
     visitIdent(fndef->ident_);
     fndef->listarg_->accept(this);
@@ -138,8 +142,8 @@ void CodeCreator::visitDecr(Decr *decr) {
 
 void CodeCreator::visitRet(Ret *ret) {
     /* Code For Ret Goes Here */
-    //Todo: Strings?
-    //Todo: take off locals?
+    // Todo: Strings?
+    // Todo: take off locals?
 
     ret->expr_->accept(this);
     i = new Pop(toStr(Reg::EAX));
@@ -150,7 +154,7 @@ void CodeCreator::visitRet(Ret *ret) {
 
 void CodeCreator::visitVRet(VRet *vret) {
     /* Code For VRet Goes Here */
-    //Todo: take off locals?
+    // Todo: take off locals?
     i = new RetC();
     emit(i);
 }
@@ -366,12 +370,21 @@ void CodeCreator::visitNeg(Neg *neg) {
     /* Code For Neg Goes Here */
 
     neg->expr_->accept(this);
+
+    i = new Pop(toStr(Reg::ECX));
+    emit(i);
+    i = new NegI(toStr(Reg::ECX));
+    emit(i);
+    i = new Push(toStr(Reg::ECX));
+    emit(i);
 }
 
 void CodeCreator::visitNot(Not *n) {
     /* Code For Not Goes Here */
 
     n->expr_->accept(this);
+
+    
 }
 
 void CodeCreator::visitEMul(EMul *emul) {
@@ -425,7 +438,7 @@ void CodeCreator::visitEOr(EOr *eor) {
 
 void CodeCreator::visitPlus(Plus *plus) {
     /* Code For Plus Goes Here */
-    //TODO: STRINGS
+    // TODO: STRINGS
     i = new Add(toStr(Reg::ECX), toStr(Reg::EAX));
     emit(i);
     i = new Push(toStr(Reg::EAX));

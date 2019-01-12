@@ -15,7 +15,26 @@ class Instruction {
    public:
     string op;
     virtual string toStr() = 0;
+    virtual bool isLabel() {
+    	return false;
+    }
 };
+
+
+class Label : public Instruction {
+public: 
+	Label(string s) : Instruction() {
+		op = s;
+	}
+	
+	string toStr() {
+		return op + ":\n";
+	}
+	bool isLabel() {
+    	return true;
+    }
+};
+
 
 class OneArgInstr : public Instruction {
    public:
@@ -148,6 +167,16 @@ class Inc : public OneArgInstr {
 			arg = arg_;
 	}
 };
+
+class NegI : public OneArgInstr {
+   public:
+   NegI(string arg_) :
+		OneArgInstr() {
+			op = "neg";
+			arg = arg_;
+	}
+};
+
 
 
 //TODO JUMPs
