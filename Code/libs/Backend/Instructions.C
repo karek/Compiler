@@ -31,6 +31,4 @@ string Addr::toStr(bool isAddr) {
     ss << (MULTIPLIER * modifier) << "(" << rtoStr(r) << ")";
 
     return ss.str();
-
-    // return
 }

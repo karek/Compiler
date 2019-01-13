@@ -67,18 +67,18 @@ void CodeCreator::visitFnDef(FnDef *fndef) {
     emit(i);
 
     stringstream ss;
-    ss << "$" << env->getLocalsCnt(fndef->ident_)*MULTIPLIER;
+    ss << "$" << env->getLocalsCnt(fndef->ident_) * MULTIPLIER;
     i = new Sub(ss.str(), Addr(Reg::ESP).toStr());
     emit(i);
-
 
     nrLoc = -1;
     fndef->type_->accept(this);
     visitIdent(fndef->ident_);
     fndef->listarg_->accept(this);
 
-
     vector<pair<string, TType>> fargs = env->getArgs(fndef->ident_);
+
+    wasRet = false;
     env->beginBlock();  // Arguments vars
     for (int i = fargs.size() - 1; i >= 0; i--) {
         int pos = i + 2;
@@ -86,6 +86,9 @@ void CodeCreator::visitFnDef(FnDef *fndef) {
     }
     fndef->block_->accept(this);
     env->endBlock();
+
+    if (!wasRet && env->getRetType(fndef->ident_).isVoid())
+      emitRetSequence();
 }
 
 void CodeCreator::visitClsDef(ClsDef *clsdef) {
@@ -159,8 +162,6 @@ void CodeCreator::visitAss(Ass *ass) {
     ass->lval_->accept(this);
     i = new Mov(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr(true));
     emit(i);
-
-
 }
 
 void CodeCreator::visitIncr(Incr *incr) {
@@ -189,16 +190,17 @@ void CodeCreator::emitRetSequence() {
 void CodeCreator::visitRet(Ret *ret) {
     /* Code For Ret Goes Here */
     // Todo: Strings?
-
+    wasRet = true;
     ret->expr_->accept(this);
     i = new Pop(Addr(Reg::EAX).toStr());
     emit(i);
 
-    emitRetSequence();    
+    emitRetSequence();
 }
 
 void CodeCreator::visitVRet(VRet *vret) {
     /* Code For VRet Goes Here */
+    wasRet = true;
     emitRetSequence();
 }
 
@@ -247,7 +249,7 @@ void CodeCreator::emitLocalVar(string ident) {
 void CodeCreator::visitNoInit(NoInit *noinit) {
     /* Code For NoInit Goes Here */
     // TODO Strings
-    
+
     emitLocalVar(noinit->ident_);
     visitIdent(noinit->ident_);
 
@@ -268,7 +270,6 @@ void CodeCreator::visitInit(Init *init) {
     int pos = env->getPos(init->ident_);
     i = new Mov(Addr(Reg::EAX).toStr(), Addr(Reg::EBP, pos).toStr());
     emit(i);
-
 }
 
 void CodeCreator::visitInt(Int *i) {
@@ -327,7 +328,7 @@ void CodeCreator::visitLvVar(LvVar *lvvar) {
     int pos = env->getPos(lvvar->ident_) * MULTIPLIER;
 
     stringstream ss;
-    ss <<  pos << "(, \%ebp, 1)";
+    ss << pos << "(, \%ebp, 1)";
 
     i = new Lea(ss.str(), Addr(Reg::EAX).toStr());
     emit(i);
@@ -431,8 +432,23 @@ void CodeCreator::visitELitFalse(ELitFalse *elitfalse) {
 void CodeCreator::visitEApp(EApp *eapp) {
     /* Code For EApp Goes Here */
 
-    visitIdent(eapp->ident_);
     eapp->listexpr_->accept(this);
+    visitIdent(eapp->ident_);
+
+    i = new Call(eapp->ident_);
+    emit(i);
+
+    // Zdejmujemy argumenty
+    stringstream ss;
+    ss << "$" << (MULTIPLIER * (eapp->listexpr_->size()));
+    i = new Add(ss.str(), Addr(Reg::ESP).toStr());
+    emit(i);
+
+    // Wrzucamy wynik
+    if (!(env->getRetType(eapp->ident_).isVoid())) {
+        i = new Push(Addr(Reg::EAX).toStr());
+        emit(i);
+    }
 }
 
 void CodeCreator::visitEString(EString *estring) {
@@ -458,8 +474,6 @@ void CodeCreator::visitNot(Not *n) {
     /* Code For Not Goes Here */
 
     n->expr_->accept(this);
-
-    
 }
 
 void CodeCreator::visitEMul(EMul *emul) {
@@ -619,7 +633,8 @@ void CodeCreator::visitListType(ListType *listtype) {
 }
 
 void CodeCreator::visitListExpr(ListExpr *listexpr) {
-    for (ListExpr::iterator i = listexpr->begin(); i != listexpr->end(); ++i) {
+    for (ListExpr::reverse_iterator i = listexpr->rbegin();
+         i != listexpr->rend(); ++i) {
         (*i)->accept(this);
     }
 }
