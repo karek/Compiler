@@ -9,11 +9,13 @@
 class CodeCreator : public Visitor {
    public:
     vector<Instruction*> instructions;
-
+    Env* env;
     Instruction *i;
-    void emit(Instruction* i);
-    void printAllInstrs();
 
+    void emit(Instruction* i);
+    void deleteInstr();
+    void printAllInstrs();
+    void emitRetSequence();
     void create(Visitable* v, Env* e);
 
     void visitProgram(Program* p);

@@ -1,9 +1,10 @@
 #include "Instructions.H"
 #include <string>
+#include <sstream>
 
 using namespace std;
 
-string toStr(Reg r){
+string rtoStr(Reg r){
 	switch(r) {
 			// {EAX, ECX, EDX, ESP, EBP, ESI, EDI, EBX};
 			case Reg::EAX : return "\%eax"; break;
@@ -16,4 +17,20 @@ string toStr(Reg r){
 			case Reg::EBX : return "\%ebx"; break;
 		}
 	return "";
+}
+
+
+string Addr::toStr(bool isAddr) {
+    if (modifier == 0 && isAddr)
+        return "(" + rtoStr(r) + ")";
+    if (modifier == 0 && !isAddr)
+        return rtoStr(r);
+
+    stringstream ss;
+
+    ss << (MULTIPLIER * modifier) << "(" << rtoStr(r) << ")";
+
+    return ss.str();
+
+    // return
 }

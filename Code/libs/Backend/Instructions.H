@@ -5,10 +5,24 @@
 
 using std::string;
 
+const int MULTIPLIER = 4;
+
 // First three don't need to be saved
 enum class Reg {EAX, ECX, EDX, ESP, EBP, ESI, EDI, EBX};
 
-string toStr(Reg r);
+string rtoStr(Reg r);
+
+class Addr {
+public:
+	Reg r;
+	int modifier;
+	Addr(Reg r_, int m = 0) : r(r_), modifier(m)
+	{}
+
+	string toStr(bool isAddr = false);
+
+};
+
 
 
 class Instruction {

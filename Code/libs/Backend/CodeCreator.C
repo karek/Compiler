@@ -27,8 +27,15 @@ void CodeCreator::visitMulOp(MulOp *t) {}          // abstract class
 void CodeCreator::visitRelOp(RelOp *t) {}          // abstract class
 
 void CodeCreator::create(Visitable *v, Env *e) {
+    env = e;
     v->accept(this);
-    cerr << "TUBLEm\n";
+}
+
+void CodeCreator::deleteInstr() {
+    for (int i = 0; i < instructions.size(); i++) {
+        delete instructions[i];
+    }
+    instructions.clear();
 }
 
 void CodeCreator::printAllInstrs() {
@@ -57,7 +64,15 @@ void CodeCreator::visitFnDef(FnDef *fndef) {
     fndef->type_->accept(this);
     visitIdent(fndef->ident_);
     fndef->listarg_->accept(this);
+
+
+    vector<pair<string, TType>> fargs = env->getArgs(fndef->ident_);
+    env->beginBlock();  // Arguments vars
+    for (int i = fargs.size() - 1; i >= 0; i--) {
+        env->addVarToCurScope(fargs[i].first, fargs[i].second);
+    }
     fndef->block_->accept(this);
+    env->endBlock();
 }
 
 void CodeCreator::visitClsDef(ClsDef *clsdef) {
@@ -140,23 +155,29 @@ void CodeCreator::visitDecr(Decr *decr) {
     decr->lval_->accept(this);
 }
 
-void CodeCreator::visitRet(Ret *ret) {
-    /* Code For Ret Goes Here */
-    // Todo: Strings?
-    // Todo: take off locals?
-
-    ret->expr_->accept(this);
-    i = new Pop(toStr(Reg::EAX));
+void CodeCreator::emitRetSequence() {
+    i = new Mov(Addr(Reg::EBP).toStr(), Addr(Reg::ESP).toStr());
+    emit(i);
+    i = new Pop(Addr(Reg::EBP).toStr());
     emit(i);
     i = new RetC();
     emit(i);
 }
 
+void CodeCreator::visitRet(Ret *ret) {
+    /* Code For Ret Goes Here */
+    // Todo: Strings?
+
+    ret->expr_->accept(this);
+    i = new Pop(Addr(Reg::EAX).toStr());
+    emit(i);
+
+    emitRetSequence();    
+}
+
 void CodeCreator::visitVRet(VRet *vret) {
     /* Code For VRet Goes Here */
-    // Todo: take off locals?
-    i = new RetC();
-    emit(i);
+    emitRetSequence();
 }
 
 void CodeCreator::visitCond(Cond *cond) {
@@ -334,7 +355,7 @@ void CodeCreator::visitELitInt(ELitInt *elitint) {
     /* Code For ELitInt Goes Here */
     stringstream ss;
 
-    ss << elitint->integer_;
+    ss << "$" << elitint->integer_;
     i = new Push(ss.str());
     emit(i);
 
@@ -343,13 +364,13 @@ void CodeCreator::visitELitInt(ELitInt *elitint) {
 
 void CodeCreator::visitELitTrue(ELitTrue *elittrue) {
     /* Code For ELitTrue Goes Here */
-    i = new Push("1");
+    i = new Push("$1");
     emit(i);
 }
 
 void CodeCreator::visitELitFalse(ELitFalse *elitfalse) {
     /* Code For ELitFalse Goes Here */
-    i = new Push("0");
+    i = new Push("$0");
     emit(i);
 }
 
@@ -371,11 +392,11 @@ void CodeCreator::visitNeg(Neg *neg) {
 
     neg->expr_->accept(this);
 
-    i = new Pop(toStr(Reg::ECX));
+    i = new Pop(Addr(Reg::ECX).toStr());
     emit(i);
-    i = new NegI(toStr(Reg::ECX));
+    i = new NegI(Addr(Reg::ECX).toStr());
     emit(i);
-    i = new Push(toStr(Reg::ECX));
+    i = new Push(Addr(Reg::ECX).toStr());
     emit(i);
 }
 
@@ -393,9 +414,9 @@ void CodeCreator::visitEMul(EMul *emul) {
     emul->expr_1->accept(this);
     emul->expr_2->accept(this);
 
-    i = new Pop(toStr(Reg::ECX));  // Second res
+    i = new Pop(Addr(Reg::ECX).toStr());  // Second res
     emit(i);
-    i = new Pop(toStr(Reg::EAX));  // First res
+    i = new Pop(Addr(Reg::EAX).toStr());  // First res
     emit(i);
     emul->mulop_->accept(this);
 }
@@ -406,9 +427,9 @@ void CodeCreator::visitEAdd(EAdd *eadd) {
     eadd->expr_1->accept(this);
     eadd->expr_2->accept(this);
 
-    i = new Pop(toStr(Reg::ECX));  // Second res
+    i = new Pop(Addr(Reg::ECX).toStr());  // Second res
     emit(i);
-    i = new Pop(toStr(Reg::EAX));  // First res
+    i = new Pop(Addr(Reg::EAX).toStr());  // First res
     emit(i);
 
     eadd->addop_->accept(this);
@@ -439,25 +460,25 @@ void CodeCreator::visitEOr(EOr *eor) {
 void CodeCreator::visitPlus(Plus *plus) {
     /* Code For Plus Goes Here */
     // TODO: STRINGS
-    i = new Add(toStr(Reg::ECX), toStr(Reg::EAX));
+    i = new Add(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr());
     emit(i);
-    i = new Push(toStr(Reg::EAX));
+    i = new Push(Addr(Reg::EAX).toStr());
     emit(i);
 }
 
 void CodeCreator::visitMinus(Minus *minus) {
     /* Code For Minus Goes Here */
-    i = new Sub(toStr(Reg::ECX), toStr(Reg::EAX));
+    i = new Sub(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr());
     emit(i);
-    i = new Push(toStr(Reg::EAX));
+    i = new Push(Addr(Reg::EAX).toStr());
     emit(i);
 }
 
 void CodeCreator::visitTimes(Times *times) {
     /* Code For Times Goes Here */
-    i = new IMul(toStr(Reg::ECX), toStr(Reg::EAX));
+    i = new IMul(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr());
     emit(i);
-    i = new Push(toStr(Reg::EAX));
+    i = new Push(Addr(Reg::EAX).toStr());
     emit(i);
 }
 
@@ -465,9 +486,9 @@ void CodeCreator::visitDiv(Div *div) {
     /* Code For Div Goes Here */
     i = new Cdq();
     emit(i);
-    i = new IDiv(toStr(Reg::ECX));
+    i = new IDiv(Addr(Reg::ECX).toStr());
     emit(i);
-    i = new Push(toStr(Reg::EAX));
+    i = new Push(Addr(Reg::EAX).toStr());
     emit(i);
 }
 
@@ -475,9 +496,9 @@ void CodeCreator::visitMod(Mod *mod) {
     /* Code For Mod Goes Here */
     i = new Cdq();
     emit(i);
-    i = new IDiv(toStr(Reg::ECX));
+    i = new IDiv(Addr(Reg::ECX).toStr());
     emit(i);
-    i = new Push(toStr(Reg::EDX));
+    i = new Push(rtoStr(Reg::EDX));
     emit(i);
 }
 

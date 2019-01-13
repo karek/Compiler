@@ -10,6 +10,7 @@ void Compiler::compile(Visitable* v, Env* e) {
     CodeCreator cc;
     cc.create(v, e);
     cc.printAllInstrs();
+    cc.deleteInstr();
     // 	BasicInfoCollector b;
     // 	b.collect(v, e);
     // //TODO: COmment this out
