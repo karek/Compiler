@@ -19,5 +19,5 @@ a: a.o crti.o crt1.o crtn.o runtime.o
 	gcc -c -o $@ -m32 $<
 
 clean:
-	rm -f runtime.o a.o a
+	rm -f a.o a
 

@@ -13,6 +13,7 @@ class CodeCreator : public Visitor {
     Instruction *i;
     TType declType;
     int nrLoc;
+    bool wasRet;
 
     void emit(Instruction* i);
     void deleteInstr();
