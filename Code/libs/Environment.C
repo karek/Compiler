@@ -46,10 +46,12 @@ int Env::getLocalsCnt(string name) {
 	return funcLocalCounts[name];
 }
 
-void Env::addVarToCurScope(string s, TType t) {
+void Env::addVarToCurScope(string s, TType t, int pos) {
 	assert(varsStack.size() > 0);
 	assert(varsStack.back().count(s) == 0);
 	varsStack.back()[s] = t;
+	if (pos) 
+		varsStack.back()[s].setPos(pos);
 }
 
 bool Env::isDeclaredInCurScope(string s) {
@@ -76,7 +78,13 @@ TType Env::lookupVarType(string s) {
 			return varsStack[i][s];
 	}
 
+	throw("Lookup of a variable that doesn't exist\n"s);
 	return vType::tNone;
+}
+
+int Env::getPos(string s) {
+	TType x = lookupVarType(s);
+	return x.getPos();
 }
 
 void Env::printFunctions() {

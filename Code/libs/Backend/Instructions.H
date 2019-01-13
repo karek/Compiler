@@ -130,7 +130,12 @@ public:
 
 class Lea : public BinArgInstr {
    public:
-    string toStr();
+   	Lea(string arg1_, string arg2_) :
+		BinArgInstr() {
+			op = "lea";
+			arg1 = (arg1_);
+			arg2 = (arg2_); 
+	}
 };
 
 class Push : public OneArgInstr {
@@ -177,10 +182,20 @@ class Inc : public OneArgInstr {
    public:
    Inc(string arg_) :
 		OneArgInstr() {
-			op = "inc";
+			op = "incl";
 			arg = arg_;
 	}
 };
+
+class Dec : public OneArgInstr {
+   public:
+   Dec(string arg_) :
+		OneArgInstr() {
+			op = "decl";
+			arg = arg_;
+	}
+};
+
 
 class NegI : public OneArgInstr {
    public:

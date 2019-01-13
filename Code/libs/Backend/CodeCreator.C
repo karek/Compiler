@@ -61,6 +61,18 @@ void CodeCreator::visitFnDef(FnDef *fndef) {
 
     i = new Label(fndef->ident_);
     emit(i);
+    i = new Push(Addr(Reg::EBP).toStr());
+    emit(i);
+    i = new Mov(Addr(Reg::ESP).toStr(), Addr(Reg::EBP).toStr());
+    emit(i);
+
+    stringstream ss;
+    ss << "$" << env->getLocalsCnt(fndef->ident_)*MULTIPLIER;
+    i = new Sub(ss.str(), Addr(Reg::ESP).toStr());
+    emit(i);
+
+
+    nrLoc = -1;
     fndef->type_->accept(this);
     visitIdent(fndef->ident_);
     fndef->listarg_->accept(this);
@@ -69,7 +81,8 @@ void CodeCreator::visitFnDef(FnDef *fndef) {
     vector<pair<string, TType>> fargs = env->getArgs(fndef->ident_);
     env->beginBlock();  // Arguments vars
     for (int i = fargs.size() - 1; i >= 0; i--) {
-        env->addVarToCurScope(fargs[i].first, fargs[i].second);
+        int pos = i + 2;
+        env->addVarToCurScope(fargs[i].first, fargs[i].second, pos);
     }
     fndef->block_->accept(this);
     env->endBlock();
@@ -125,8 +138,9 @@ void CodeCreator::visitEmpty(Empty *empty) {
 
 void CodeCreator::visitBStmt(BStmt *bstmt) {
     /* Code For BStmt Goes Here */
-
+    env->beginBlock();
     bstmt->block_->accept(this);
+    env->endBlock();
 }
 
 void CodeCreator::visitDecl(Decl *decl) {
@@ -139,20 +153,28 @@ void CodeCreator::visitDecl(Decl *decl) {
 void CodeCreator::visitAss(Ass *ass) {
     /* Code For Ass Goes Here */
 
-    ass->lval_->accept(this);
     ass->expr_->accept(this);
+    i = new Pop(Addr(Reg::ECX).toStr());
+    emit(i);
+    ass->lval_->accept(this);
+    i = new Mov(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr(true));
+    emit(i);
+
+
 }
 
 void CodeCreator::visitIncr(Incr *incr) {
     /* Code For Incr Goes Here */
-
     incr->lval_->accept(this);
+    i = new Inc(Addr(Reg::EAX).toStr(true));
+    emit(i);
 }
 
 void CodeCreator::visitDecr(Decr *decr) {
     /* Code For Decr Goes Here */
-
     decr->lval_->accept(this);
+    i = new Dec(Addr(Reg::EAX).toStr(true));
+    emit(i);
 }
 
 void CodeCreator::emitRetSequence() {
@@ -217,33 +239,56 @@ void CodeCreator::visitSExp(SExp *sexp) {
     sexp->expr_->accept(this);
 }
 
+void CodeCreator::emitLocalVar(string ident) {
+    env->addVarToCurScope(ident, declType, nrLoc);
+    nrLoc--;
+}
+
 void CodeCreator::visitNoInit(NoInit *noinit) {
     /* Code For NoInit Goes Here */
-
+    // TODO Strings
+    
+    emitLocalVar(noinit->ident_);
     visitIdent(noinit->ident_);
+
+    int pos = env->getPos(noinit->ident_);
+    i = new Mov("$0", Addr(Reg::EBP, pos).toStr());
+    emit(i);
 }
 
 void CodeCreator::visitInit(Init *init) {
     /* Code For Init Goes Here */
 
+    emitLocalVar(init->ident_);
     visitIdent(init->ident_);
     init->expr_->accept(this);
+
+    i = new Pop(Addr(Reg::EAX).toStr());
+    emit(i);
+    int pos = env->getPos(init->ident_);
+    i = new Mov(Addr(Reg::EAX).toStr(), Addr(Reg::EBP, pos).toStr());
+    emit(i);
+
 }
 
 void CodeCreator::visitInt(Int *i) {
     /* Code For Int Goes Here */
+    declType = TType(vType::tInt);
 }
 
 void CodeCreator::visitStr(Str *str) {
     /* Code For Str Goes Here */
+    declType = TType(vType::tStr);
 }
 
 void CodeCreator::visitBool(Bool *b) {
     /* Code For Bool Goes Here */
+    declType = TType(vType::tBool);
 }
 
 void CodeCreator::visitVoid(Void *v) {
     /* Code For Void Goes Here */
+    declType = TType(vType::tVoid);
 }
 
 void CodeCreator::visitFun(Fun *fun) {
@@ -279,7 +324,13 @@ void CodeCreator::visitNormalType(NormalType *normaltype) {
 
 void CodeCreator::visitLvVar(LvVar *lvvar) {
     /* Code For LvVar Goes Here */
+    int pos = env->getPos(lvvar->ident_) * MULTIPLIER;
 
+    stringstream ss;
+    ss <<  pos << "(, \%ebp, 1)";
+
+    i = new Lea(ss.str(), Addr(Reg::EAX).toStr());
+    emit(i);
     visitIdent(lvvar->ident_);
 }
 
@@ -347,7 +398,10 @@ void CodeCreator::visitENewCls(ENewCls *enewcls) {
 
 void CodeCreator::visitEVar(EVar *evar) {
     /* Code For EVar Goes Here */
+    int pos = env->getPos(evar->ident_);
 
+    i = new Push(Addr(Reg::EBP, pos).toStr());
+    emit(i);
     visitIdent(evar->ident_);
 }
 

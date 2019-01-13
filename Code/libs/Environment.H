@@ -25,9 +25,10 @@ public:
 
 	void beginBlock();
 	void endBlock();
-	void addVarToCurScope(string s, TType t);
+	void addVarToCurScope(string s, TType t, int pos = 0);
 	bool lookupVar(string s); 
 	TType lookupVarType(string s);
+	int getPos(string s);
 	bool isDeclaredInCurScope(string s);
 	bool hasAnyScope();
 	

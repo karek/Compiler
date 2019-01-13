@@ -17,6 +17,7 @@ private:
 	int i_;
 	bool b_;
 	vType typ;
+	int _posModifier;
 
 public: 
 	
@@ -39,6 +40,14 @@ public:
 		typ = vt;
 	}
 
+
+	void setPos(int p) {
+		_posModifier = p;
+	}
+
+	int getPos() {
+		return _posModifier;
+	}
 
 	bool isInt() const {
 		return typ == vType::tInt;
