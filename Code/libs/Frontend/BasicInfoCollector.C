@@ -66,6 +66,7 @@ void BasicInfoCollector::collect(Visitable *v, Env *e) {
     v->accept(this);
     checkMain();
     addPreimplementedFunctions();
+    env->addConstStr("");
 }
 
 void BasicInfoCollector::addPreimplementedFunctions() {

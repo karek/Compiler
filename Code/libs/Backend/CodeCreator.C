@@ -277,13 +277,17 @@ void CodeCreator::emitLocalVar(string ident) {
 
 void CodeCreator::visitNoInit(NoInit *noinit) {
     /* Code For NoInit Goes Here */
-    // TODO Strings
 
     emitLocalVar(noinit->ident_);
     visitIdent(noinit->ident_);
 
     int pos = env->getPos(noinit->ident_);
-    i = new Mov("$0", Addr(Reg::EBP, pos).toStr());
+    string arg = "$0";
+    if(declType.isString()) {
+        arg = "$" + env->getLabStr("\"\"");
+    }
+
+    i = new Mov(arg, Addr(Reg::EBP, pos).toStr());
     emit(i);
 }
 
@@ -293,7 +297,7 @@ void CodeCreator::visitInit(Init *init) {
     emitLocalVar(init->ident_);
     visitIdent(init->ident_);
     init->expr_->accept(this);
-
+    //Expr can't change type of declType -> it would be detected in frontend
     i = new Pop(Addr(Reg::EAX).toStr());
     emit(i);
     int pos = env->getPos(init->ident_);
