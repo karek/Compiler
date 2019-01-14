@@ -28,7 +28,35 @@ void CodeCreator::visitRelOp(RelOp *t) {}          // abstract class
 
 void CodeCreator::create(Visitable *v, Env *e) {
     env = e;
+    cerr << generateSections();
     v->accept(this);
+}
+
+
+string CodeCreator::generateSections() {
+    stringstream ss;
+    ss << ".data\n";
+
+    for(int i = 0; i < env->getStrCnt(); i++) {
+        ss << env->getLabStr(i) << ":\t" << ".string \"" 
+           << env->getString(i) << "\"\n";
+    }
+
+    ss << ".text\n";
+    ss << ".globl main\n\n";
+    return ss.str();
+}
+
+string CodeCreator::generateProgram(){
+    stringstream ss;
+    for (int i = 0; i < instructions.size(); i++) {
+        if (!instructions[i]->isLabel())
+            ss << "\t";
+        ss << instructions[i]->toStr();
+    }
+    ss << "\n";
+
+    return ss.str();
 }
 
 void CodeCreator::deleteInstr() {
@@ -44,6 +72,7 @@ void CodeCreator::printAllInstrs() {
             cerr << "\t";
         cerr << instructions[i]->toStr();
     }
+    cerr << "\n";
 }
 
 void CodeCreator::emit(Instruction *instr) {
@@ -455,6 +484,9 @@ void CodeCreator::visitEString(EString *estring) {
     /* Code For EString Goes Here */
 
     visitString(estring->string_);
+    string lab = "$" + env->getLabStr(estring->string_);
+    i = new Push(lab);
+    emit(i);
 }
 
 void CodeCreator::visitNeg(Neg *neg) {

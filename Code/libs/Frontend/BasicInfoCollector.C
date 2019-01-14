@@ -452,6 +452,7 @@ void BasicInfoCollector::visitEString(EString *estring) {
     /* Code For EString Goes Here */
 
     visitString(estring->string_);
+    env->addConstStr(estring->string_);
 }
 
 void BasicInfoCollector::visitNeg(Neg *neg) {

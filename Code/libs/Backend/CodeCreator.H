@@ -20,7 +20,10 @@ class CodeCreator : public Visitor {
     void printAllInstrs();
     void emitRetSequence();
     void emitLocalVar(string ident);
+    string generateSections();
+    string generateProgram();
     void create(Visitable* v, Env* e);
+    void concatStrings();
 
     void visitProgram(Program* p);
     void visitTopDef(TopDef* p);
