@@ -12,6 +12,7 @@ class CodeCreator : public Visitor {
     Env* env;
     Instruction *i;
     TType declType;
+    TType lastType;
     int nrLoc;
     bool wasRet;
 

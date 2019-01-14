@@ -32,14 +32,13 @@ void CodeCreator::create(Visitable *v, Env *e) {
     v->accept(this);
 }
 
-
 string CodeCreator::generateSections() {
     stringstream ss;
     ss << ".data\n";
 
-    for(int i = 0; i < env->getStrCnt(); i++) {
-        ss << env->getLabStr(i) << ":\t" << ".string \"" 
-           << env->getString(i) << "\"\n";
+    for (int i = 0; i < env->getStrCnt(); i++) {
+        ss << env->getLabStr(i) << ":\t"
+           << ".string \"" << env->getString(i) << "\"\n";
     }
 
     ss << ".text\n";
@@ -47,7 +46,7 @@ string CodeCreator::generateSections() {
     return ss.str();
 }
 
-string CodeCreator::generateProgram(){
+string CodeCreator::generateProgram() {
     stringstream ss;
     for (int i = 0; i < instructions.size(); i++) {
         if (!instructions[i]->isLabel())
@@ -117,7 +116,7 @@ void CodeCreator::visitFnDef(FnDef *fndef) {
     env->endBlock();
 
     if (!wasRet && env->getRetType(fndef->ident_).isVoid())
-      emitRetSequence();
+        emitRetSequence();
 }
 
 void CodeCreator::visitClsDef(ClsDef *clsdef) {
@@ -283,8 +282,8 @@ void CodeCreator::visitNoInit(NoInit *noinit) {
 
     int pos = env->getPos(noinit->ident_);
     string arg = "$0";
-    if(declType.isString()) {
-        arg = "$" + env->getLabStr("\"\"");
+    if (declType.isString()) {
+        arg = "$" + env->getLabStr("");
     }
 
     i = new Mov(arg, Addr(Reg::EBP, pos).toStr());
@@ -297,7 +296,7 @@ void CodeCreator::visitInit(Init *init) {
     emitLocalVar(init->ident_);
     visitIdent(init->ident_);
     init->expr_->accept(this);
-    //Expr can't change type of declType -> it would be detected in frontend
+    // Expr can't change type of declType -> it would be detected in frontend
     i = new Pop(Addr(Reg::EAX).toStr());
     emit(i);
     int pos = env->getPos(init->ident_);
@@ -308,21 +307,25 @@ void CodeCreator::visitInit(Init *init) {
 void CodeCreator::visitInt(Int *i) {
     /* Code For Int Goes Here */
     declType = TType(vType::tInt);
+    lastType = declType;
 }
 
 void CodeCreator::visitStr(Str *str) {
     /* Code For Str Goes Here */
     declType = TType(vType::tStr);
+    lastType = declType;
 }
 
 void CodeCreator::visitBool(Bool *b) {
     /* Code For Bool Goes Here */
     declType = TType(vType::tBool);
+    lastType = declType;
 }
 
 void CodeCreator::visitVoid(Void *v) {
     /* Code For Void Goes Here */
     declType = TType(vType::tVoid);
+    lastType = declType;
 }
 
 void CodeCreator::visitFun(Fun *fun) {
@@ -448,18 +451,22 @@ void CodeCreator::visitELitInt(ELitInt *elitint) {
     emit(i);
 
     visitInteger(elitint->integer_);
+
+    lastType = TType(vType::tInt);
 }
 
 void CodeCreator::visitELitTrue(ELitTrue *elittrue) {
     /* Code For ELitTrue Goes Here */
     i = new Push("$1");
     emit(i);
+    lastType = TType(vType::tBool);
 }
 
 void CodeCreator::visitELitFalse(ELitFalse *elitfalse) {
     /* Code For ELitFalse Goes Here */
     i = new Push("$0");
     emit(i);
+    lastType = TType(vType::tBool);
 }
 
 void CodeCreator::visitEApp(EApp *eapp) {
@@ -491,6 +498,7 @@ void CodeCreator::visitEString(EString *estring) {
     string lab = "$" + env->getLabStr(estring->string_);
     i = new Push(lab);
     emit(i);
+    lastType = TType(vType::tStr);
 }
 
 void CodeCreator::visitNeg(Neg *neg) {
@@ -531,10 +539,12 @@ void CodeCreator::visitEAdd(EAdd *eadd) {
     eadd->expr_1->accept(this);
     eadd->expr_2->accept(this);
 
+    
     i = new Pop(Addr(Reg::ECX).toStr());  // Second res
     emit(i);
     i = new Pop(Addr(Reg::EAX).toStr());  // First res
     emit(i);
+  
 
     eadd->addop_->accept(this);
 }
@@ -545,6 +555,7 @@ void CodeCreator::visitERel(ERel *erel) {
     erel->expr_1->accept(this);
     erel->relop_->accept(this);
     erel->expr_2->accept(this);
+    lastType = TType(vType::tBool);
 }
 
 void CodeCreator::visitEAnd(EAnd *eand) {
@@ -552,6 +563,7 @@ void CodeCreator::visitEAnd(EAnd *eand) {
 
     eand->expr_1->accept(this);
     eand->expr_2->accept(this);
+    lastType = TType(vType::tBool);
 }
 
 void CodeCreator::visitEOr(EOr *eor) {
@@ -559,11 +571,31 @@ void CodeCreator::visitEOr(EOr *eor) {
 
     eor->expr_1->accept(this);
     eor->expr_2->accept(this);
+    lastType = TType(vType::tBool);
+}
+
+void CodeCreator::concatStrings() {
+    i = new Push(Addr(Reg::ECX).toStr());  // Second res
+    emit(i);
+    i = new Push(Addr(Reg::EAX).toStr());  // First res
+    emit(i);
+
+    i = new Call("__concatStrings");
+    emit(i);
+    i = new Add("$8", Addr(Reg::ESP).toStr());  // forget args
+    emit(i);
+    i = new Push(Addr(Reg::EAX).toStr());
+    emit(i);
 }
 
 void CodeCreator::visitPlus(Plus *plus) {
     /* Code For Plus Goes Here */
-    // TODO: STRINGS
+
+    if (lastType.isString()) {
+        concatStrings();
+        return;
+    }
+
     i = new Add(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr());
     emit(i);
     i = new Push(Addr(Reg::EAX).toStr());

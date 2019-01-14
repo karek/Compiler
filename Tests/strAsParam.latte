@@ -1,12 +1,14 @@
-void dawaj(string s) {
+void dawaj(string z) {
 	string b;
-	string c = "a" + s;
+	string c = "a" + z;
+	string d = c + "zzz";
 	printString(b);
 	printString(c);
+	printString(d);
 }
 
 int main() {
 	string s = "abc";
-	printString(s);
+	dawaj(s);
 	return 0;
 }
