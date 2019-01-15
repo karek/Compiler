@@ -1,0 +1,39 @@
+Kompilator dla języka latte (zgodnie z https://www.mimuw.edu.pl/~ben/Zajecia/Mrj2018/latte.html)
+
+Autor: Krzysztof Kiljan, kk334658
+
+
+Język docelowy: Assembler x86 (32bitowy, AT&T)
+
+Program można skompilować przy użyciu Makefile'a z katalogu głównego projektu, wystarczy zrobić:
+
+make
+
+a następnie możemy już używać naszego kompilatora:
+
+./latc_x86 [Plik_latte]
+
+
+Struktura katalogów:
+Root(kk334658/):
+./src/  -- katalog z kodami w C++
+./src/libs/ -- Pliki wspólne dla Backendu oraz frontendu
+./src/libs/Frontend -- pliki służące do statycznej analizy poprawności programu (kontroli typów itp.) oraz zebrania potrzebnych danych do dalszej kompilacji
+./src/libs/Backend -- Pliki służące do wygenerowania kodu do ASMa
+./lib/ -- Pliki pomocnicze do kompilacji, runtime.o, crt1.o, ..., libc.a
+./Tests/lattests/ -- Testy udostępnione przez prowadzącego
+./Tests/ -- Testy stworzone przeze mnie podczas tworzenia kompilatora
+
+
+
+
+Użyte technologie:
+
+- BNFC (v. 2.8.1) do generowania frontendu (Parserów, lexerów, itp.)
+- C++ - Całość kompilatora jest napisana w C++, bez użycia jakichś zewnętrznych bibliotek z wyjątkiem tych używanych przez BNFC.
+
+
+Rejestrów używam do wykonywania jedynie podstawowych operacji -- większość rzeczy dzieje się na stosie i przy wykonywaniu operacji, wczytuje rzeczy ze stosu do rejestru, a następnie odkładam z powrotem na stos. 
+
+W gramatyce są zaimplementowane tablice, struktury oraz obiekty, jednak nie ma dla nich jeszcze generacji kodu -> w fazie analizy statycznej, kompilator zwraca błąd mówiący o tym że są jeszcze nie zaimplementowane.
+
