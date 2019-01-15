@@ -316,6 +316,8 @@ void CodeCreator::visitCondElse(CondElse *condelse) {
     i = new Label(tmp_lt);
     emit(i);
     condelse->stmt_1->accept(this);
+    i = new Jmp(tmp_ln);
+    emit(i);
     i = new Label(tmp_lf);
     emit(i);
     condelse->stmt_2->accept(this);
@@ -703,12 +705,55 @@ void CodeCreator::visitEAdd(EAdd *eadd) {
     eadd->addop_->accept(this);
 }
 
+Instruction* CodeCreator::genCorrectJmp(string lt) {
+    Instruction *res;
+
+    switch(lastRelop.getOp()) {
+        case vRelop::oLt: res = new Jlt(lt); break;
+        case vRelop::oLe: res = new Jle(lt); break;
+        case vRelop::oGt: res = new Jgt(lt); break;
+        case vRelop::oGe: res = new Jge(lt); break;
+        case vRelop::oEq: res = new Jeq(lt); break;
+        case vRelop::oNeq: res = new Jneq(lt); break;
+    }
+
+
+    return res;
+}
+
 void CodeCreator::visitERel(ERel *erel) {
     /* Code For ERel Goes Here */
+    string tmp_lt = lt;
+    string tmp_lf = lf;
+    string tmp_ln = ln;
 
     erel->expr_1->accept(this);
-    erel->relop_->accept(this);
+
+    lt = tmp_lt;
+    lf = tmp_lf;
+    ln = tmp_ln;
     erel->expr_2->accept(this);
+
+    lt = tmp_lt;
+    lf = tmp_lf;
+    ln = tmp_ln;
+
+    i = new Pop(Addr(Reg::ECX).toStr());  // Second res
+    emit(i);
+    i = new Pop(Addr(Reg::EAX).toStr());  // First res
+    emit(i);
+
+    erel->relop_->accept(this);
+
+    i = new Cmp( Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr());
+    emit(i);
+
+    i = genCorrectJmp(lt);
+    emit(i);
+
+    i = new Jmp(lf);
+    emit(i);
+
     lastType = TType(vType::tBool);
 }
 

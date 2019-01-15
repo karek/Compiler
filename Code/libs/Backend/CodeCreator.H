@@ -32,6 +32,7 @@ class CodeCreator : public Visitor {
     void create(Visitable* v, Env* e);
     void concatStrings();
     void genStdTrueFalse(string tmp_lt, string tmp_lf, string tmp_ln);
+    Instruction* genCorrectJmp(string lt);
 
     void visitProgram(Program* p);
     void visitTopDef(TopDef* p);
