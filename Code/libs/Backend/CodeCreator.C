@@ -374,7 +374,7 @@ void CodeCreator::visitNoInit(NoInit *noinit) {
 void CodeCreator::visitInit(Init *init) {
     /* Code For Init Goes Here */
 
-    emitLocalVar(init->ident_);
+    
     visitIdent(init->ident_);
 
     if (declType.isBool()) {
@@ -391,12 +391,15 @@ void CodeCreator::visitInit(Init *init) {
         genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
     }
 
+    emitLocalVar(init->ident_); //Todo: Check if fixed
 
     i = new Pop(Addr(Reg::EAX).toStr());
     emit(i);
     int pos = env->getPos(init->ident_);
     i = new Mov(Addr(Reg::EAX).toStr(), Addr(Reg::EBP, pos).toStr());
     emit(i);
+
+    
 }
 
 void CodeCreator::visitInt(Int *i) {
@@ -551,14 +554,14 @@ void CodeCreator::visitEVar(EVar *evar) {
 
         // TODO: Upgrade?
         // if (lf == ln) { // or
-        //     i = new Jnz(ln); // != 0
+        //     i = new Jnz(lt); // != 0 ->was lf
         //     emit(i);
         // }
         // else if (lt == ln) { // and
         //     i = new Jz(lf); // == 0
         //     emit(i);
         // } else {
-        //     i = new Jnz(lf);
+        //     i = new Jz(lf);
         //     emit(i);
         //     i = new Jmp(lt);
         //     emit(i);
