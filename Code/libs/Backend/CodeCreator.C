@@ -327,9 +327,26 @@ void CodeCreator::visitCondElse(CondElse *condelse) {
 
 void CodeCreator::visitWhile(While *w) {
     /* Code For While Goes Here */
+    string lbeg = env->getNextLabel();
+    lt = env->getNextLabel();
+    lf = env->getNextLabel();
+    ln = lf;
+    string tmp_lt = lt;
+    string tmp_ln = ln;
+    string tmp_lf = lf;
 
+    i = new Label(lbeg, "  #loop condition");
+    emit(i);
     w->expr_->accept(this);
+    i = new Label(lt, "  #loop body");
+    emit(i);
+
     w->stmt_->accept(this);
+    i = new Jmp(lbeg);
+    emit(i);
+
+    i = new Label(tmp_ln, "  # End while");
+    emit(i);
 }
 
 void CodeCreator::visitFor(For *f) {
@@ -374,7 +391,6 @@ void CodeCreator::visitNoInit(NoInit *noinit) {
 void CodeCreator::visitInit(Init *init) {
     /* Code For Init Goes Here */
 
-    
     visitIdent(init->ident_);
 
     if (declType.isBool()) {
@@ -391,15 +407,13 @@ void CodeCreator::visitInit(Init *init) {
         genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
     }
 
-    emitLocalVar(init->ident_); //Todo: Check if fixed
+    emitLocalVar(init->ident_);  // Todo: Check if fixed
 
     i = new Pop(Addr(Reg::EAX).toStr());
     emit(i);
     int pos = env->getPos(init->ident_);
     i = new Mov(Addr(Reg::EAX).toStr(), Addr(Reg::EBP, pos).toStr());
     emit(i);
-
-    
 }
 
 void CodeCreator::visitInt(Int *i) {
@@ -547,25 +561,24 @@ void CodeCreator::visitEVar(EVar *evar) {
         i = new Testz(Addr(Reg::EAX).toStr(), Addr(Reg::EAX).toStr());
         emit(i);
         // JZ
-        i = new Jz(lf);
-        emit(i);
-        i = new Jmp(lt);
-        emit(i);
+        // i = new Jz(lf);
+        // emit(i);
+        // i = new Jmp(lt);
+        // emit(i);
 
         // TODO: Upgrade?
-        // if (lf == ln) { // or
-        //     i = new Jnz(lt); // != 0 ->was lf
-        //     emit(i);
-        // }
-        // else if (lt == ln) { // and
-        //     i = new Jz(lf); // == 0
-        //     emit(i);
-        // } else {
-        //     i = new Jz(lf);
-        //     emit(i);
-        //     i = new Jmp(lt);
-        //     emit(i);
-        // }
+        if (lf == ln) {       // or
+            i = new Jnz(lt);  // != 0 ->was lf
+            emit(i);
+        } else if (lt == ln) {  // and
+            i = new Jz(lf);     // == 0
+            emit(i);
+        } else {
+            i = new Jz(lf);
+            emit(i);
+            i = new Jmp(lt);
+            emit(i);
+        }
 
         return;
     }
@@ -708,18 +721,29 @@ void CodeCreator::visitEAdd(EAdd *eadd) {
     eadd->addop_->accept(this);
 }
 
-Instruction* CodeCreator::genCorrectJmp(string lt) {
+Instruction *CodeCreator::genCorrectJmp(string lt) {
     Instruction *res;
 
-    switch(lastRelop.getOp()) {
-        case vRelop::oLt: res = new Jlt(lt); break;
-        case vRelop::oLe: res = new Jle(lt); break;
-        case vRelop::oGt: res = new Jgt(lt); break;
-        case vRelop::oGe: res = new Jge(lt); break;
-        case vRelop::oEq: res = new Jeq(lt); break;
-        case vRelop::oNeq: res = new Jneq(lt); break;
+    switch (lastRelop.getOp()) {
+        case vRelop::oLt:
+            res = new Jlt(lt);
+            break;
+        case vRelop::oLe:
+            res = new Jle(lt);
+            break;
+        case vRelop::oGt:
+            res = new Jgt(lt);
+            break;
+        case vRelop::oGe:
+            res = new Jge(lt);
+            break;
+        case vRelop::oEq:
+            res = new Jeq(lt);
+            break;
+        case vRelop::oNeq:
+            res = new Jneq(lt);
+            break;
     }
-
 
     return res;
 }
@@ -748,7 +772,7 @@ void CodeCreator::visitERel(ERel *erel) {
 
     erel->relop_->accept(this);
 
-    i = new Cmp( Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr());
+    i = new Cmp(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr());
     emit(i);
 
     i = genCorrectJmp(lt);
