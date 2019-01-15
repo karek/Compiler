@@ -6,12 +6,12 @@ using namespace std;
 
 void Analyzer::analyze(Visitable* v, Env* e) {
 //TODO: COmment this out
-	cerr << "Analyzing...\n\n";
+	// cerr << "Analyzing...\n\n";
 	
 	BasicInfoCollector b;
 	b.collect(v, e);
 //TODO: COmment this out
-	e->printFunctions();
+	// e->printFunctions();
 
 	TypeChecker tc;
 	tc.checkTypes(v, e);
