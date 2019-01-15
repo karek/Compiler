@@ -2,8 +2,8 @@ all:
 	make latc_x86 latc
 
 latc_x86:
-	cd Code && make Main
-	cp Code/Main latc_x86
+	cd src && make Main
+	cp src/Main latc_x86
 
 latc: latc_x86
 	cp latc_x86 latc
@@ -13,5 +13,5 @@ clean:
 
 clean_all:
 	make clean
-	cd Code && make clean
+	cd src && make clean
  
