@@ -561,24 +561,24 @@ void CodeCreator::visitEVar(EVar *evar) {
         i = new Testz(Addr(Reg::EAX).toStr(), Addr(Reg::EAX).toStr());
         emit(i);
         // JZ
-        // i = new Jz(lf);
-        // emit(i);
-        // i = new Jmp(lt);
-        // emit(i);
+        i = new Jz(lf);
+        emit(i);
+        i = new Jmp(lt);
+        emit(i);
 
         // TODO: Upgrade?
-        if (lf == ln) {       // or
-            i = new Jnz(lt);  // != 0 ->was lf
-            emit(i);
-        } else if (lt == ln) {  // and
-            i = new Jz(lf);     // == 0
-            emit(i);
-        } else {
-            i = new Jz(lf);
-            emit(i);
-            i = new Jmp(lt);
-            emit(i);
-        }
+        // if (lf == ln) {       // or
+        //     i = new Jnz(lt);  // != 0 ->was lf
+        //     emit(i);
+        // } else if (lt == ln) {  // and
+        //     i = new Jz(lf);     // == 0
+        //     emit(i);
+        // } else {
+        //     i = new Jz(lf);
+        //     emit(i);
+        //     i = new Jmp(lt);
+        //     emit(i);
+        // }
 
         return;
     }
