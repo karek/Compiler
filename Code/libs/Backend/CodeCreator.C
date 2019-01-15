@@ -775,20 +775,30 @@ Instruction *CodeCreator::genCorrectJmp(string lt) {
 
 void CodeCreator::visitERel(ERel *erel) {
     /* Code For ERel Goes Here */
-    string tmp_lt = lt;
-    string tmp_lf = lf;
-    string tmp_ln = ln;
+    string s_lt = lt, s_lf = lf, s_ln = ln;
+    lt = env->getNextLabel();
+    lf = env->getNextLabel();
+    ln = env->getNextLabel();
+    string tmp_lt = lt,  tmp_lf = lf, tmp_ln = ln;
 
     erel->expr_1->accept(this);
 
-    lt = tmp_lt;
-    lf = tmp_lf;
-    ln = tmp_ln;
+    if (lastType.isBool())
+        genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
+
+    lt = env->getNextLabel();
+    lf = env->getNextLabel();
+    ln = env->getNextLabel();
+    tmp_lt = lt,  tmp_lf = lf, tmp_ln = ln;
+
     erel->expr_2->accept(this);
 
     lt = tmp_lt;
     lf = tmp_lf;
     ln = tmp_ln;
+    if (lastType.isBool())
+        genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
+    lt = s_lt, lf = s_lf, ln = s_ln;
 
     i = new Pop(Addr(Reg::ECX).toStr());  // Second res
     emit(i);
@@ -842,7 +852,7 @@ void CodeCreator::visitEOr(EOr *eor) {
 
     eor->expr_1->accept(this);
 
-    i = new Label(lmid);
+    i = new Label(lmid,  " # or mid");
     emit(i);
 
     lf = tmp_lf;
