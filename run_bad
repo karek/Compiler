@@ -1,5 +1,7 @@
+make
+
 for f in ../lattests/bad/*.lat
 do
 	echo $f
-	./Code/Main $f
+	./latc_x86 $f
 done 

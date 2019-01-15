@@ -360,10 +360,11 @@ void CodeCreator::visitFor(For *f) {
 
 void CodeCreator::visitSExp(SExp *sexp) {
     /* Code For SExp Goes Here */
-    // lt = env->getNextLabel();
-    // lf = env->getNextLabel();
-    // ln = env->getNextLabel();
+    lt = env->getNextLabel();
+    lf = ln = lt;
     sexp->expr_->accept(this);
+    i = new Label(lt, "   # expr");
+    emit(i);
     // a bit useless, isn't it?
 }
 
@@ -625,7 +626,31 @@ void CodeCreator::visitELitFalse(ELitFalse *elitfalse) {
 void CodeCreator::visitEApp(EApp *eapp) {
     /* Code For EApp Goes Here */
 
-    eapp->listexpr_->accept(this);
+    // eapp->listexpr_->accept(this);
+    vector<pair<string, TType>> args = env->getArgs(eapp->ident_);
+    int curArg = args.size() - 1;
+    for (ListExpr::reverse_iterator i = eapp->listexpr_->rbegin();
+         i != eapp->listexpr_->rend(); ++i, curArg--) {
+
+        if (args[curArg].second.isBool()) {
+            string s_lt = lt, s_lf = lf, s_ln = ln;
+            lt = env->getNextLabel();
+            lf = env->getNextLabel();
+            ln = env->getNextLabel();
+            string tmp_lt = lt, tmp_lf = lf, tmp_ln = ln;
+
+            (*i)->accept(this);
+         
+            genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
+            lt = s_lt, lf = s_lf, ln = s_ln;
+
+        }
+        else {
+            (*i)->accept(this);
+        }
+
+
+    }
     visitIdent(eapp->ident_);
 
     i = new Call(eapp->ident_);

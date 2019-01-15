@@ -1,5 +1,9 @@
+make
+
 for f in ../lattests/good/*.lat
 do
 	echo $f
-	./Code/Main $f
+	./latc_x86 $f
+	./${f%.lat} > ${f%lat}out
+	diff ${f%lat}out ${f%lat}output
 done 
