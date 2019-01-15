@@ -1,0 +1,12 @@
+//Check if it doesn't emit empty jumps
+
+int fun(int c, boolean b) {
+	if (b)
+		return c;
+	return 3;
+}
+
+int main() {
+	printInt(fun(7, true));
+	return 0;
+}
