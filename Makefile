@@ -1,10 +1,13 @@
 all:
-	make latte_x86
+	make latc_x86 latc
 
-latte_x86:
-	cd Code && make Main && cp Main ../latte_x86
+latc_x86:
+	cd Code && make Main && cp Main ../latc_x86
+
+latc: latc_x86
+	cp latc_x86 latc
 
 clean:
-	rm -f latte_x86
+	rm -f latc_x86 latc
 	cd Code && make clean
  

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include "Compiler.H"
 
 using namespace std;
@@ -9,16 +10,17 @@ void Compiler::compile(Visitable* v, Env* e) {
 
     CodeCreator cc;
     cc.create(v, e);
-    cc.printAllInstrs();
-    cc.deleteInstr();
-    // 	BasicInfoCollector b;
-    // 	b.collect(v, e);
-    // //TODO: COmment this out
-    // 	e->printFunctions();
+    // cc.printAllInstrs();
+    compiled = cc.generateSections() + cc.generateProgram();
+    // cerr << compiled << "\n";
+    cc.deleteInstr(); //free the memory
+}
 
-    // 	TypeChecker tc;
-    // 	tc.checkTypes(v, e);
 
-    // 	ReturnChecker rc;
-    // 	rc.checkReturns(v, e);
+void Compiler::printProgramToFile(string filename) {
+    ofstream file;
+    file.open(filename); 
+
+    file << compiled;
+    file.close();
 }

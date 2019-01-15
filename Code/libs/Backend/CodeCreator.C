@@ -30,7 +30,7 @@ void CodeCreator::create(Visitable *v, Env *e) {
     env = e;
     genCode = true;
     env->resetLabNr();
-    cerr << generateSections();
+    // cerr << generateSections();
     v->accept(this);
 }
 

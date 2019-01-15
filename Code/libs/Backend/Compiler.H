@@ -15,8 +15,11 @@ using std::pair;
 
 
 class Compiler {
+private:
+	string compiled;
 public:
 	void compile(Visitable* v, Env* e);
+	void printProgramToFile(string filename);
 
 };
 
