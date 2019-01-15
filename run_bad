@@ -1,6 +1,6 @@
 make
 
-for f in ../lattests/bad/*.lat
+for f in Tests/lattests/bad/*.lat
 do
 	echo $f
 	./latc_x86 $f
