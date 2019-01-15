@@ -313,8 +313,14 @@ void CodeCreator::visitCondElse(CondElse *condelse) {
     string tmp_lf = lf;
 
     condelse->expr_->accept(this);
+    i = new Label(tmp_lt);
+    emit(i);
     condelse->stmt_1->accept(this);
+    i = new Label(tmp_lf);
+    emit(i);
     condelse->stmt_2->accept(this);
+    i = new Label(tmp_ln);
+    emit(i);
 }
 
 void CodeCreator::visitWhile(While *w) {
