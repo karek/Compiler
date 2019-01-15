@@ -129,3 +129,15 @@ string Env::getLabStr(string s) {
     ss << "_CSL" << nr;
     return ss.str();
 }
+
+
+void Env::resetLabNr() {
+	labNr = 0;
+}
+
+string Env::getNextLabel() {
+	labNr++;
+	stringstream ss;
+	ss << "_lab" << labNr;
+	return ss.str();
+}

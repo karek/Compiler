@@ -39,6 +39,9 @@ class Env {
     string getLabStr(int nr);
     string getLabStr(string s);
 
+    void resetLabNr();
+    string getNextLabel();
+
    private:
     map<string, pair<TType, vector<pair<string, TType>>>> functionsMap;
     map<string, int> funcLocalCounts;
@@ -46,6 +49,8 @@ class Env {
 
     vector<string> constStrings;
     map<string, int> stringsNr;
+
+    int labNr;
 };
 
 #endif

@@ -46,12 +46,14 @@ class Instruction {
 
 class Label : public Instruction {
    public:
-    Label(string s) : Instruction() {
+    string comment;
+    Label(string s, string com ="") : Instruction() {
         op = s;
+        comment = com;
     }
 
     string toStr() {
-        return op + ":\n";
+        return op + ":" + comment + "\n";
     }
     bool isLabel() {
         return true;
@@ -200,5 +202,99 @@ class NegI : public OneArgInstr {
     }
 };
 
-// TODO JUMPs
+
+class Jmp : public OneArgInstr {
+	public:
+    Jmp(string arg_) : OneArgInstr() {
+        op = "jmp";
+        arg = arg_;
+    }
+};
+
+class Jz : public OneArgInstr {
+    public:
+    Jz(string arg_) : OneArgInstr() {
+        op = "jz";
+        arg = arg_;
+    }
+};
+
+class Jnz : public OneArgInstr {
+    public:
+    Jnz(string arg_) : OneArgInstr() {
+        op = "jnz";
+        arg = arg_;
+    }
+};
+
+class Jeq : public OneArgInstr {
+	public:
+    Jeq(string arg_) : OneArgInstr() {
+        op = "je";
+        arg = arg_;
+    }
+};
+
+class Jneq : public OneArgInstr {
+	public:
+    Jneq(string arg_) : OneArgInstr() {
+        op = "jne";
+        arg = arg_;
+    }
+};
+
+class Jgt : public OneArgInstr {
+	public:
+    Jgt(string arg_) : OneArgInstr() {
+        op = "jg";
+        arg = arg_;
+    }
+};
+
+class Jge : public OneArgInstr {
+	public:
+    Jge(string arg_) : OneArgInstr() {
+        op = "jge";
+        arg = arg_;
+    }
+};
+
+class Jlt : public OneArgInstr {
+	public:
+    Jlt(string arg_) : OneArgInstr() {
+        op = "jl";
+        arg = arg_;
+    }
+};
+
+
+class Jle : public OneArgInstr {
+	public:
+    Jle(string arg_) : OneArgInstr() {
+        op = "jle";
+        arg = arg_;
+    }
+};
+
+
+class Cmp : public BinArgInstr {
+	public:
+    Cmp(string arg1_, string arg2_) : BinArgInstr() {
+        op = "cmpl";
+        arg1 = (arg1_);
+        arg2 = (arg2_);
+    }
+
+};
+
+class Testz : public BinArgInstr {
+    public:
+    Testz(string arg1_, string arg2_) : BinArgInstr() {
+        op = "test";
+        arg1 = (arg1_);
+        arg2 = (arg2_);
+    }
+
+};
+
 #endif

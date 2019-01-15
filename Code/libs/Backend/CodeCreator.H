@@ -13,8 +13,14 @@ class CodeCreator : public Visitor {
     Instruction *i;
     TType declType;
     TType lastType;
+    TRelop lastRelop;
+    string curFunc;
+
+    bool genCode;
     int nrLoc;
     bool wasRet;
+    string lt, lf, ln;
+
 
     void emit(Instruction* i);
     void deleteInstr();
@@ -25,6 +31,7 @@ class CodeCreator : public Visitor {
     string generateProgram();
     void create(Visitable* v, Env* e);
     void concatStrings();
+    void genStdTrueFalse(string tmp_lt, string tmp_lf, string tmp_ln);
 
     void visitProgram(Program* p);
     void visitTopDef(TopDef* p);

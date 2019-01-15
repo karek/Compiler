@@ -28,6 +28,8 @@ void CodeCreator::visitRelOp(RelOp *t) {}          // abstract class
 
 void CodeCreator::create(Visitable *v, Env *e) {
     env = e;
+    genCode = true;
+    env->resetLabNr();
     cerr << generateSections();
     v->accept(this);
 }
@@ -86,8 +88,8 @@ void CodeCreator::visitProg(Prog *prog) {
 
 void CodeCreator::visitFnDef(FnDef *fndef) {
     /* Code For FnDef Goes Here */
-
-    i = new Label(fndef->ident_);
+    curFunc = fndef->ident_;
+    i = new Label(fndef->ident_, "  #funkcja");
     emit(i);
     i = new Push(Addr(Reg::EBP).toStr());
     emit(i);
@@ -181,12 +183,50 @@ void CodeCreator::visitDecl(Decl *decl) {
     decl->listitem_->accept(this);
 }
 
+void CodeCreator::genStdTrueFalse(string tmp_lt, string tmp_lf, string tmp_ln) {
+    lt = tmp_lt;
+    lf = tmp_lf;
+    ln = tmp_ln;
+    i = new Label(lt, "   #lt");
+    emit(i);
+    i = new Push("$1");
+    emit(i);
+    i = new Jmp(ln);
+    emit(i);
+
+    i = new Label(lf, "   #lf");
+    emit(i);
+    i = new Push("$0");
+    emit(i);
+
+    i = new Label(ln, "   #ln");
+    emit(i);
+}
+
 void CodeCreator::visitAss(Ass *ass) {
     /* Code For Ass Goes Here */
 
+    genCode = false;
+    ass->lval_->accept(this);  // Check the type of Var
+    genCode = true;
+    TType type = lastType;
+
+    if (type.isBool()) {
+        lt = env->getNextLabel();
+        lf = env->getNextLabel();
+        ln = env->getNextLabel();
+    }
+    string tmp_lt = lt, tmp_lf = lf, tmp_ln = ln;
+
     ass->expr_->accept(this);
+
+    if (type.isBool()) {
+        genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
+    }
+
     i = new Pop(Addr(Reg::ECX).toStr());
     emit(i);
+
     ass->lval_->accept(this);
     i = new Mov(Addr(Reg::ECX).toStr(), Addr(Reg::EAX).toStr(true));
     emit(i);
@@ -217,9 +257,22 @@ void CodeCreator::emitRetSequence() {
 
 void CodeCreator::visitRet(Ret *ret) {
     /* Code For Ret Goes Here */
-    // Todo: Strings?
     wasRet = true;
+    TType type = env->getRetType(curFunc);
+
+    if (type.isBool()) {
+        lt = env->getNextLabel();
+        lf = env->getNextLabel();
+        ln = env->getNextLabel();
+    }
+    string tmp_lt = lt, tmp_lf = lf, tmp_ln = ln;
+
     ret->expr_->accept(this);
+
+    if (type.isBool()) {
+        genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
+    }
+
     i = new Pop(Addr(Reg::EAX).toStr());
     emit(i);
 
@@ -234,13 +287,30 @@ void CodeCreator::visitVRet(VRet *vret) {
 
 void CodeCreator::visitCond(Cond *cond) {
     /* Code For Cond Goes Here */
+    lt = env->getNextLabel();
+    ln = env->getNextLabel();
+    lf = ln;
+    string tmp_lt = lt;
+    string tmp_ln = ln;
+    string tmp_lf = lf;
 
     cond->expr_->accept(this);
+
+    i = new Label(tmp_lt);
+    emit(i);
     cond->stmt_->accept(this);
+    i = new Label(tmp_ln);
+    emit(i);
 }
 
 void CodeCreator::visitCondElse(CondElse *condelse) {
     /* Code For CondElse Goes Here */
+    lt = env->getNextLabel();
+    lf = env->getNextLabel();
+    ln = env->getNextLabel();
+    string tmp_lt = lt;
+    string tmp_ln = ln;
+    string tmp_lf = lf;
 
     condelse->expr_->accept(this);
     condelse->stmt_1->accept(this);
@@ -265,8 +335,11 @@ void CodeCreator::visitFor(For *f) {
 
 void CodeCreator::visitSExp(SExp *sexp) {
     /* Code For SExp Goes Here */
-
+    // lt = env->getNextLabel();
+    // lf = env->getNextLabel();
+    // ln = env->getNextLabel();
     sexp->expr_->accept(this);
+    // a bit useless, isn't it?
 }
 
 void CodeCreator::emitLocalVar(string ident) {
@@ -295,8 +368,22 @@ void CodeCreator::visitInit(Init *init) {
 
     emitLocalVar(init->ident_);
     visitIdent(init->ident_);
+
+    if (declType.isBool()) {
+        lt = env->getNextLabel();
+        lf = env->getNextLabel();
+        ln = env->getNextLabel();
+    }
+    string tmp_lt = lt, tmp_lf = lf, tmp_ln = ln;
+
     init->expr_->accept(this);
     // Expr can't change type of declType -> it would be detected in frontend
+
+    if (declType.isBool()) {
+        genStdTrueFalse(tmp_lt, tmp_lf, tmp_ln);
+    }
+
+
     i = new Pop(Addr(Reg::EAX).toStr());
     emit(i);
     int pos = env->getPos(init->ident_);
@@ -361,6 +448,11 @@ void CodeCreator::visitNormalType(NormalType *normaltype) {
 
 void CodeCreator::visitLvVar(LvVar *lvvar) {
     /* Code For LvVar Goes Here */
+    lastType = env->lookupVarType(lvvar->ident_);
+    // varIdent = lvvar->ident_;
+    if (!genCode)
+        return;
+
     int pos = env->getPos(lvvar->ident_) * MULTIPLIER;
 
     stringstream ss;
@@ -435,11 +527,42 @@ void CodeCreator::visitENewCls(ENewCls *enewcls) {
 
 void CodeCreator::visitEVar(EVar *evar) {
     /* Code For EVar Goes Here */
+    TType varT = env->lookupVarType(evar->ident_);
     int pos = env->getPos(evar->ident_);
+
+    if (varT.isBool()) {
+        i = new Mov(Addr(Reg::EBP, pos).toStr(), Addr(Reg::EAX).toStr());
+        emit(i);
+        i = new Testz(Addr(Reg::EAX).toStr(), Addr(Reg::EAX).toStr());
+        emit(i);
+        // JZ
+        i = new Jz(lf);
+        emit(i);
+        i = new Jmp(lt);
+        emit(i);
+
+        // TODO: Upgrade?
+        // if (lf == ln) { // or
+        //     i = new Jnz(ln); // != 0
+        //     emit(i);
+        // }
+        // else if (lt == ln) { // and
+        //     i = new Jz(lf); // == 0
+        //     emit(i);
+        // } else {
+        //     i = new Jnz(lf);
+        //     emit(i);
+        //     i = new Jmp(lt);
+        //     emit(i);
+        // }
+
+        return;
+    }
 
     i = new Push(Addr(Reg::EBP, pos).toStr());
     emit(i);
     visitIdent(evar->ident_);
+    lastType = varT;
 }
 
 void CodeCreator::visitELitInt(ELitInt *elitint) {
@@ -457,15 +580,21 @@ void CodeCreator::visitELitInt(ELitInt *elitint) {
 
 void CodeCreator::visitELitTrue(ELitTrue *elittrue) {
     /* Code For ELitTrue Goes Here */
-    i = new Push("$1");
-    emit(i);
+    // i = new Push("$1");
+    // emit(i);
+    if (lt != ln) {
+        i = new Jmp(lt);
+        emit(i);
+    }
     lastType = TType(vType::tBool);
 }
 
 void CodeCreator::visitELitFalse(ELitFalse *elitfalse) {
     /* Code For ELitFalse Goes Here */
-    i = new Push("$0");
-    emit(i);
+    if (lf != ln) {
+        i = new Jmp(lf);
+        emit(i);
+    }
     lastType = TType(vType::tBool);
 }
 
@@ -483,6 +612,18 @@ void CodeCreator::visitEApp(EApp *eapp) {
     ss << "$" << (MULTIPLIER * (eapp->listexpr_->size()));
     i = new Add(ss.str(), Addr(Reg::ESP).toStr());
     emit(i);
+
+    lastType = env->getRetType(eapp->ident_);
+    if (lastType.isBool()) {
+        i = new Testz(Addr(Reg::EAX).toStr(), Addr(Reg::EAX).toStr());
+        emit(i);
+        // JZ
+        i = new Jz(lf);
+        emit(i);
+        i = new Jmp(lt);
+        emit(i);
+        return;
+    }
 
     // Wrzucamy wynik
     if (!(env->getRetType(eapp->ident_).isVoid())) {
@@ -516,8 +657,17 @@ void CodeCreator::visitNeg(Neg *neg) {
 
 void CodeCreator::visitNot(Not *n) {
     /* Code For Not Goes Here */
+    string tmp_lt = lt;
+    string tmp_lf = lf;
+    string tmp_ln = ln;
+
+    lt = tmp_lf;  // We swap the labels inside the expression
+    lf = tmp_lt;
 
     n->expr_->accept(this);
+
+    lt = tmp_lt;
+    lf = tmp_lf;
 }
 
 void CodeCreator::visitEMul(EMul *emul) {
@@ -539,12 +689,10 @@ void CodeCreator::visitEAdd(EAdd *eadd) {
     eadd->expr_1->accept(this);
     eadd->expr_2->accept(this);
 
-    
     i = new Pop(Addr(Reg::ECX).toStr());  // Second res
     emit(i);
     i = new Pop(Addr(Reg::EAX).toStr());  // First res
     emit(i);
-  
 
     eadd->addop_->accept(this);
 }
@@ -561,15 +709,42 @@ void CodeCreator::visitERel(ERel *erel) {
 void CodeCreator::visitEAnd(EAnd *eand) {
     /* Code For EAnd Goes Here */
 
+    string tmp_lt = lt;
+    string tmp_lf = lf;
+    string tmp_ln = ln;
+
+    string lmid = env->getNextLabel();
+
+    lt = lmid;
+    ln = lmid;
     eand->expr_1->accept(this);
+    i = new Label(lmid, "  # mid");
+    emit(i);
+    lt = tmp_lt;
+    ln = tmp_ln;
     eand->expr_2->accept(this);
     lastType = TType(vType::tBool);
 }
 
 void CodeCreator::visitEOr(EOr *eor) {
     /* Code For EOr Goes Here */
+    string tmp_lt = lt;
+    string tmp_lf = lf;
+    string tmp_ln = ln;
+
+    string lmid = env->getNextLabel();
+
+    lf = lmid;
+    ln = lmid;
 
     eor->expr_1->accept(this);
+
+    i = new Label(lmid);
+    emit(i);
+
+    lf = tmp_lf;
+    ln = tmp_ln;
+
     eor->expr_2->accept(this);
     lastType = TType(vType::tBool);
 }
@@ -640,26 +815,32 @@ void CodeCreator::visitMod(Mod *mod) {
 
 void CodeCreator::visitLTH(LTH *lth) {
     /* Code For LTH Goes Here */
+    lastRelop = TRelop(vRelop::oLt);
 }
 
 void CodeCreator::visitLE(LE *le) {
     /* Code For LE Goes Here */
+    lastRelop = TRelop(vRelop::oLe);
 }
 
 void CodeCreator::visitGTH(GTH *gth) {
     /* Code For GTH Goes Here */
+    lastRelop = TRelop(vRelop::oGt);
 }
 
 void CodeCreator::visitGE(GE *ge) {
     /* Code For GE Goes Here */
+    lastRelop = TRelop(vRelop::oGe);
 }
 
 void CodeCreator::visitEQU(EQU *equ) {
     /* Code For EQU Goes Here */
+    lastRelop = TRelop(vRelop::oEq);
 }
 
 void CodeCreator::visitNE(NE *ne) {
     /* Code For NE Goes Here */
+    lastRelop = TRelop(vRelop::oNeq);
 }
 
 void CodeCreator::visitListTopDef(ListTopDef *listtopdef) {
