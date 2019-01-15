@@ -6,7 +6,7 @@ using namespace std;
 
 void Compiler::compile(Visitable* v, Env* e) {
     // TODO: COmment this out
-    cerr << "Compiling...\n\n";
+    // cerr << "Compiling...\n\n";
 
     CodeCreator cc;
     cc.create(v, e);
