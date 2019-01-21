@@ -397,6 +397,8 @@ void ReturnChecker::visitELitFalse(ELitFalse *elitfalse) {
 void ReturnChecker::visitEApp(EApp *eapp) {
     /* Code For EApp Goes Here */
     
+    if(eapp->ident_ == "error")
+        wasReturn = true;
     visitIdent(eapp->ident_);
     eapp->listexpr_->accept(this);
 }
