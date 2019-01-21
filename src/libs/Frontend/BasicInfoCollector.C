@@ -63,9 +63,9 @@ void BasicInfoCollector::visitRelOp(RelOp *t) {}          // abstract class
 
 void BasicInfoCollector::collect(Visitable *v, Env *e) {
     env = e;
+    addPreimplementedFunctions();
     v->accept(this);
     checkMain();
-    addPreimplementedFunctions();
     env->addConstStr("");
 }
 
