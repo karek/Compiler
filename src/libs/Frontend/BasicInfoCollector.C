@@ -156,6 +156,9 @@ void BasicInfoCollector::visitAr(Ar *ar) {
     /* Code For Ar Goes Here */
 
     ar->type_->accept(this);
+    if(lastType.isVoid())
+        throwVoidVar(ar->ident_, ar->line_number);
+
     fargs.push_back({ar->ident_, lastType});
     visitIdent(ar->ident_);
 }
