@@ -60,6 +60,26 @@ void throwCustomError(int line, string err) {
     throw(ss.str());
 }
 
+void throwNotIntArrSize(int line) {
+    stringstream ss;
+    ss << "Line " << line << ": " << "size of array is not an int " << "\n";
+    throw(ss.str());
+}
+
+void throwArrayIndexNotInt(int line, string s) {
+    stringstream ss;
+    ss << "Line " << line << ": " << "index of array is not an int, type " << s << "\n";
+    throw(ss.str());
+}
+
+void throwNotAnArray(int line, string s) {
+    stringstream ss;
+    ss << "Line " << line << ": " << " trying to use a variable of type " << s
+         << " as an array" << "\n";
+    throw(ss.str());
+}
+
+
 void TypeChecker::visitProgram(Program *t) {}      // abstract class
 void TypeChecker::visitTopDef(TopDef *t) {}        // abstract class
 void TypeChecker::visitArg(Arg *t) {}              // abstract class
@@ -343,6 +363,7 @@ void TypeChecker::visitArrayType(ArrayType *arraytype) {
     /* Code For ArrayType Goes Here */
 
     arraytype->typename_->accept(this);
+    lastType.setIsArr(true);
 }
 
 void TypeChecker::visitNormalType(NormalType *normaltype) {
@@ -363,8 +384,14 @@ void TypeChecker::visitLvVar(LvVar *lvvar) {
 void TypeChecker::visitLvTab(LvTab *lvtab) {
     /* Code For LvTab Goes Here */
 
-    lvtab->expr_1->accept(this);
+    
     lvtab->expr_2->accept(this);
+    if(!lastType.isInt())
+        throwArrayIndexNotInt(lvtab->line_number, lastType.toStr());
+
+    lvtab->expr_1->accept(this);
+    if(!lastType.isArray())
+        throwNotAnArray(lvtab->line_number, lastType.toStr());
 }
 
 void TypeChecker::visitLvAttr(LvAttr *lvattr) {
@@ -378,7 +405,12 @@ void TypeChecker::visitEAttr(EAttr *eattr) {
     /* Code For EAttr Goes Here */
 
     eattr->expr_->accept(this);
+     // Only arrays -> length, no structs
+    if(!lastType.isArray())
+        throwNotAnArray(eattr->line_number, lastType.toStr());
     visitIdent(eattr->ident_);
+
+    lastType = TType(vType::tInt);
 }
 
 void TypeChecker::visitEMetCall(EMetCall *emetcall) {
@@ -398,15 +430,27 @@ void TypeChecker::visitECastNull(ECastNull *ecastnull) {
 void TypeChecker::visitEAt(EAt *eat) {
     /* Code For EAt Goes Here */
 
-    eat->expr_1->accept(this);
     eat->expr_2->accept(this);
+    if(!lastType.isInt())
+        throwArrayIndexNotInt(eat->line_number, lastType.toStr());
+
+    eat->expr_1->accept(this);
+    if(!lastType.isArray())
+        throwNotAnArray(eat->line_number, lastType.toStr());
+
+    lastType.setIsArr(false);
 }
 
 void TypeChecker::visitENewArr(ENewArr *enewarr) {
     /* Code For ENewArr Goes Here */
 
-    enewarr->basictype_->accept(this);
     enewarr->expr_->accept(this);
+    if(!lastType.isInt())
+        throwNotIntArrSize(enewarr->line_number);
+
+
+    enewarr->basictype_->accept(this);
+    lastType.setIsArr(true);
 }
 
 void TypeChecker::visitENewClArr(ENewClArr *enewclarr) {

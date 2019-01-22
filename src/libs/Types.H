@@ -18,31 +18,41 @@ private:
 	bool b_;
 	vType typ;
 	int _posModifier;
+	bool isArr_;
 
 public: 
 	
 	TType() : s_(""), i_(0), b_(false) {
 		typ = vType::tNone;
+		isArr_ = false;
 	}
 	TType(vType vt) : s_(""), i_(0), b_(false) {
 		typ = vt;
+		isArr_ = false;
 	}
 
 	TType(vType vt, string s) : s_(s), i_(0), b_(false) {
 		typ = vt;
+		isArr_ = false;
 	}
 
 	TType(vType vt, int i) : s_(""), i_(i), b_(false) {
 		typ = vt;
+		isArr_ = false;
 	}
 
 	TType(vType vt, bool b) : s_(""), i_(0), b_(b) {
 		typ = vt;
+		isArr_ = false;
 	}
 
 
 	void setPos(int p) {
 		_posModifier = p;
+	}
+
+	void setIsArr(bool b) {
+		isArr_ = b;
 	}
 
 	int getPos() {
@@ -60,8 +70,13 @@ public:
 	bool isString() const {
 		return typ == vType::tStr;
 	}
+	
 	bool isBool() const {
 		return typ == vType::tBool;
+	}
+
+	bool isArray() const {
+		return isArr_ == true;
 	}
 
 	//TODO: Add Classes / arrays?
@@ -75,14 +90,17 @@ public:
 	}
 
 	string toStr() const {
+		string arr;
+		if (isArray())
+			arr = "[]";
 		switch(typ) {
 			// {tVoid, tInt, tBool, tString, tClass, tNone};
-			case vType::tVoid : return "tvoid"; break;
-			case vType::tInt : return "tint"; break;
-			case vType::tBool : return "tbool"; break;
-			case vType::tStr : return "tstr"; break;
-			case vType::tClass : return "tclass"; break;
-			case vType::tNone : return "none"; break;
+			case vType::tVoid : return "tvoid" + arr; break;
+			case vType::tInt : return "tint" + arr; break;
+			case vType::tBool : return "tbool" + arr; break;
+			case vType::tStr : return "tstr" + arr; break;
+			case vType::tClass : return "tclass" + arr; break;
+			case vType::tNone : return "none" + arr; break;
 		}
 
 		return "Err";
@@ -93,7 +111,7 @@ public:
 	}
 
 	friend bool operator==(const TType& lhs, const TType& rhs){
-    	return lhs.getTyp() == rhs.getTyp();
+    	return lhs.getTyp() == rhs.getTyp() && lhs.isArray() == rhs.isArray();
 	}
 
 };

@@ -30,6 +30,12 @@ void throwVoidVar(string name, int line) {
     throw(ss.str());
 }
 
+void throwNotLHV(string name, int line) {
+    stringstream ss;
+    ss << "Line " << line << ": Left hand side is not a LValue (." << name << ") \n";
+    throw(ss.str());
+}
+
 void throwUseofUndeclaredVar(string name, int line) {
     stringstream ss;
     ss << "Line " << line << ": variable \"" << name
@@ -284,6 +290,8 @@ void BasicInfoCollector::visitNoInit(NoInit *noinit) {
     } else {
         env->addVarToCurScope(noinit->ident_, lastType);
     }
+
+    cerr << lastType.toStr() << "\n";
     visitIdent(noinit->ident_);
 }
 
@@ -344,8 +352,9 @@ void BasicInfoCollector::visitClsType(ClsType *clstype) {
 
 void BasicInfoCollector::visitArrayType(ArrayType *arraytype) {
     /* Code For ArrayType Goes Here */
-    throw("Arrays " + notImplemented);
+    // throw("Arrays " + notImplemented);
     arraytype->typename_->accept(this);
+    lastType.setIsArr(true);
 }
 
 void BasicInfoCollector::visitNormalType(NormalType *normaltype) {
@@ -363,13 +372,19 @@ void BasicInfoCollector::visitLvVar(LvVar *lvvar) {
 
 void BasicInfoCollector::visitLvTab(LvTab *lvtab) {
     /* Code For LvTab Goes Here */
-    throw("Arrays " + notImplemented);
+    // throw("Arrays " + notImplemented);
     lvtab->expr_1->accept(this);
+    // check if array
+    // if(!lastType.isArray())
+        // throw("Not an array"s);
     lvtab->expr_2->accept(this);
+    // check if int
 }
 
 void BasicInfoCollector::visitLvAttr(LvAttr *lvattr) {
     /* Code For LvAttr Goes Here */
+    if(lvattr->ident_ == "length")
+        throwNotLHV(lvattr->ident_, lvattr->line_number);
     throw("Classes " + notImplemented);
     lvattr->expr_->accept(this);
     visitIdent(lvattr->ident_);
@@ -377,13 +392,17 @@ void BasicInfoCollector::visitLvAttr(LvAttr *lvattr) {
 
 void BasicInfoCollector::visitEAttr(EAttr *eattr) {
     /* Code For EAttr Goes Here */
-    throw("Classes " + notImplemented);
+    if(eattr->ident_ != "length")
+        throw("Classes " + notImplemented);
     eattr->expr_->accept(this);
     visitIdent(eattr->ident_);
 }
 
 void BasicInfoCollector::visitEMetCall(EMetCall *emetcall) {
     /* Code For EMetCall Goes Here */
+    // Todo: length
+
+
     throw("Classes " + notImplemented);
     emetcall->expr_->accept(this);
     visitIdent(emetcall->ident_);
@@ -398,21 +417,21 @@ void BasicInfoCollector::visitECastNull(ECastNull *ecastnull) {
 
 void BasicInfoCollector::visitEAt(EAt *eat) {
     /* Code For EAt Goes Here */
-    throw("Arrays " + notImplemented);
+    // throw("Arrays " + notImplemented);
     eat->expr_1->accept(this);
     eat->expr_2->accept(this);
 }
 
 void BasicInfoCollector::visitENewArr(ENewArr *enewarr) {
     /* Code For ENewArr Goes Here */
-    throw("Arrays " + notImplemented);
+    // throw("Arrays " + notImplemented);
     enewarr->basictype_->accept(this);
     enewarr->expr_->accept(this);
 }
 
 void BasicInfoCollector::visitENewClArr(ENewClArr *enewclarr) {
     /* Code For ENewClArr Goes Here */
-    throw("Arrays " + notImplemented);
+    throw("Arrays of Classes " + notImplemented);
     visitIdent(enewclarr->ident_);
     enewclarr->expr_->accept(this);
 }
