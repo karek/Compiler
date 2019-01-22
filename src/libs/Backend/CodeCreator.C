@@ -568,7 +568,7 @@ void CodeCreator::visitEVar(EVar *evar) {
         emit(i);
 
         // TODO: Upgrade?
-        // if (lf == ln) {       // or
+        // if (lf == ln) {       // or, if
         //     i = new Jnz(lt);  // != 0 ->was lf
         //     emit(i);
         // } else if (lt == ln) {  // and
@@ -607,19 +607,19 @@ void CodeCreator::visitELitTrue(ELitTrue *elittrue) {
     /* Code For ELitTrue Goes Here */
     // i = new Push("$1");
     // emit(i);
-    if (lt != ln) {
+    // if (lt != ln) {
         i = new Jmp(lt);
         emit(i);
-    }
+    // }
     lastType = TType(vType::tBool);
 }
 
 void CodeCreator::visitELitFalse(ELitFalse *elitfalse) {
     /* Code For ELitFalse Goes Here */
-    if (lf != ln) {
+    // if (lf != ln) {
         i = new Jmp(lf);
         emit(i);
-    }
+    // }
     lastType = TType(vType::tBool);
 }
 
