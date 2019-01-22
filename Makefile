@@ -1,4 +1,5 @@
 all:
+	rm latc latc_x86
 	make latc_x86 latc
 
 latc_x86:
