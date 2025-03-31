@@ -17,7 +17,7 @@ Then you can use the compiler as follows:
 
 Directory Structure:
 
-Root (kk334658/):
+Root:
 - `./src/` – Directory containing C++ source code
 - `./src/libs/` – Common files for Backend and Frontend
 - `./src/libs/Frontend` – Files used for static analysis (type checking, correctness checking) and gathering data necessary for compilation
